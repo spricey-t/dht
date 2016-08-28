@@ -12,5 +12,22 @@
         <module>dht-core</module>
     </modules>
 
+    <properties>
+        <slf4j.version>1.7.21</slf4j.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <!--<artifactId>slf4j-log4j12</artifactId>-->
+            <version>${slf4j.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>
