@@ -7,10 +7,8 @@ public abstract class OverlayNode implements ServerDelegate {
 
     private ConnectionManager connectionManager;
     private Server server;
-    private final int serverPort;
 
     public OverlayNode(int serverPort) {
-        this.serverPort = serverPort;
     }
 
     public void start() {
@@ -18,7 +16,6 @@ public abstract class OverlayNode implements ServerDelegate {
     }
 
     public void shutdown() {
-
         server.shutdown();
     }
 }
