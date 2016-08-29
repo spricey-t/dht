@@ -28,7 +28,10 @@ public class TCPReceiver implements Runnable {
                 delegate.onEvent(eventFactory.createEvent(data));
             }
         } catch (Exception e) {
-            delegate.onEvent(new ReceiveError(e));
+            // if shutdown was triggered intentionally, do not propagate error
+            if(!Thread.currentThread().isInterrupted()) {
+                delegate.onEvent(new ReceiveError(e));
+            }
         }
     }
 }

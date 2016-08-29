@@ -28,21 +28,21 @@ public abstract class Server {
         }
 
         serverThread = new Thread(this::listen);
-        LOG.debug("Server started.");
+        serverThread.start();
+        LOG.info("server started.");
     }
 
     public void shutdown() {
         if(!serverRunning()) {
             return;
         }
+        serverThread.interrupt();
+        LOG.info("interrupted server thread");
+    }
 
-        try {
-            serverThread.interrupt();
+    public void join() throws InterruptedException {
+        if(serverThread != null) {
             serverThread.join();
-            LOG.debug("Server shutdown.");
-        } catch (InterruptedException e) {
-            LOG.error("Error during server shutdown: " + e.getMessage());
-            serverThread.interrupt();
         }
     }
 
