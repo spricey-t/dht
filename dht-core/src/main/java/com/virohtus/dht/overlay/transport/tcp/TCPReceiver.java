@@ -9,11 +9,13 @@ import java.net.Socket;
 
 public class TCPReceiver implements Runnable {
 
+    private final String connectionId;
     private final ConnectionDelegate delegate;
     private final DataInputStream dataInputStream;
     private final EventFactory eventFactory = EventFactory.getInstance();
 
-    public TCPReceiver(ConnectionDelegate delegate, Socket socket) throws IOException {
+    public TCPReceiver(String connectionId, ConnectionDelegate delegate, Socket socket) throws IOException {
+        this.connectionId = connectionId;
         this.delegate = delegate;
         this.dataInputStream = new DataInputStream(socket.getInputStream());
     }
@@ -25,12 +27,12 @@ public class TCPReceiver implements Runnable {
                 int dataLength = dataInputStream.readInt();
                 byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data);
-                delegate.onEvent(eventFactory.createEvent(data));
+                delegate.onEvent(connectionId, eventFactory.createEvent(data));
             }
         } catch (Exception e) {
             // if shutdown was triggered intentionally, do not propagate error
             if(!Thread.currentThread().isInterrupted()) {
-                delegate.onEvent(new ReceiveError(e));
+                delegate.onEvent(connectionId, new ReceiveError(e));
             }
         }
     }

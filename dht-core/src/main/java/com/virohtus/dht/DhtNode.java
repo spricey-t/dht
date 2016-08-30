@@ -14,7 +14,7 @@ public class DhtNode extends OverlayNode {
     }
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(String connectionId, Event event) {
         LOG.info("received event: " + event.getType());
     }
 }

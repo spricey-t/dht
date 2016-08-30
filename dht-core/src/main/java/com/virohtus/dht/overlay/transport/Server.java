@@ -29,7 +29,7 @@ public abstract class Server {
 
         serverThread = new Thread(this::listen);
         serverThread.start();
-        LOG.info("server started.");
+        LOG.info("server started");
     }
 
     public void shutdown() {
@@ -37,7 +37,7 @@ public abstract class Server {
             return;
         }
         serverThread.interrupt();
-        LOG.info("interrupted server thread");
+        LOG.info("shutting down server");
     }
 
     public void join() throws InterruptedException {

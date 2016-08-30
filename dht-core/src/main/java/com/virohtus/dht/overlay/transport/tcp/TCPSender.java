@@ -8,10 +8,12 @@ import java.net.Socket;
 
 public class TCPSender {
 
+    private final String connectionId;
     private final ConnectionDelegate delegate;
     private final DataOutputStream dataOutputStream;
 
-    public TCPSender(ConnectionDelegate delegate, Socket socket) throws IOException {
+    public TCPSender(String connectionId, ConnectionDelegate delegate, Socket socket) throws IOException {
+        this.connectionId = connectionId;
         this.delegate = delegate;
         this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
     }

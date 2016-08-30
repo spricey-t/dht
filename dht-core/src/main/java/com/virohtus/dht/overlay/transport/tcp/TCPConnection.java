@@ -17,8 +17,8 @@ public class TCPConnection extends Connection {
 
     public TCPConnection(ConnectionDelegate delegate, Socket socket) throws IOException {
         super(delegate, socket);
-        receiver = new TCPReceiver(delegate, socket);
-        sender = new TCPSender(delegate, socket);
+        receiver = new TCPReceiver(getId(), delegate, socket);
+        sender = new TCPSender(getId(), delegate, socket);
         receiverThread = new Thread(receiver);
     }
 
