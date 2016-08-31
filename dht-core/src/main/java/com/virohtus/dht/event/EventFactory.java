@@ -28,6 +28,7 @@ public class EventFactory {
             case EventProtocol.ERROR_EVENT: return new ErrorEvent(data);
             case EventProtocol.CONNECTION_ERROR: return new ConnectionError(data);
             case EventProtocol.RECEIVER_ERROR: return new ReceiveError(data);
+            case EventProtocol.STRING_MESSAGE_EVENT: return new StringMessageEvent(data);
         }
 
         throw new UnsupportedEventException("unsupported event type: " + eventType);
