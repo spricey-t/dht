@@ -37,19 +37,24 @@ public class TCPConnection extends Connection {
     @Override
     public void close() {
         try {
-            if(receiverThreadAlive()) {
+            if(isAlive()) {
                 receiverThread.interrupt();
             }
             dataInputStream.close();
             dataOutputStream.close();
             socket.close();
-        } catch (IOException e) {
+            receiverThread.join();
+        } catch (Exception e) {
             LOG.error("Error on TCPConnection close: " + e.getMessage());
         }
     }
 
+    public boolean isAlive() {
+        return receiverThread != null && receiverThread.isAlive();
+    }
+
     private void receive() {
-        if(receiverThreadAlive()) {
+        if(isAlive()) {
             return;
         }
 
@@ -66,9 +71,5 @@ public class TCPConnection extends Connection {
             }
         });
         receiverThread.start();
-    }
-
-    private boolean receiverThreadAlive() {
-        return receiverThread != null && receiverThread.isAlive();
     }
 }

@@ -60,6 +60,8 @@ public class TCPConnectionTest {
 
         StringMessageEvent expectedEvent = new StringMessageEvent(testString);
         Assert.assertEquals(expectedEvent, eventCaptor.getValue());
+
+        tcpConnection.close();
     }
 
     @Test(timeout = 5000)
@@ -80,5 +82,23 @@ public class TCPConnectionTest {
 
         Assert.assertEquals(testData.length, receivedDataLength);
         Assert.assertEquals(testString, new String(receivedData, EventProtocol.STRING_ENCODING));
+
+        tcpConnection.close();
+    }
+
+    @Test(expected = IOException.class)
+    public void testInputStreamClosed() throws IOException {
+        TCPConnection tcpConnection = new TCPConnection(connectionDelegate, socket);
+        tcpConnection.close();
+        Assert.assertFalse(tcpConnection.isAlive());
+        pipedInputStream.read();
+    }
+
+    @Test(expected = IOException.class)
+    public void testOutputStreamClosed() throws IOException {
+        TCPConnection tcpConnection = new TCPConnection(connectionDelegate, socket);
+        tcpConnection.close();
+        Assert.assertFalse(tcpConnection.isAlive());
+        pipedOutputStream.write(2);
     }
 }

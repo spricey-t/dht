@@ -32,9 +32,9 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
 
     public void shutdown() {
         server.shutdown();
-        connectionManager.clear().stream().forEach(connection -> {
-            connection.close();
-        });
+        connectionManager.clear().stream().forEach(connection ->
+            connection.close()
+        );
     }
 
     public void join() throws InterruptedException {
