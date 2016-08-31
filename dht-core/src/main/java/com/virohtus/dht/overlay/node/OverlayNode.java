@@ -35,6 +35,7 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
         connectionManager.clear().stream().forEach(connection ->
             connection.close()
         );
+        fingers.stream().forEach(connection -> connection.close());
     }
 
     public void join() throws InterruptedException {
@@ -82,7 +83,7 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
     }
 
     private void handleConnectionError(String connectionId, ConnectionError event) {
-        LOG.info("encountered connection error, closing connection: " + connectionId);
+        LOG.info("client disconnected: " + connectionId);
         Connection connection = connectionManager.remove(connectionId);
         connection.close();
     }
