@@ -47,9 +47,17 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
         fingers.add(connection);
     }
 
+    public void send(String connectionId, Event event) throws IOException {
+        Connection connection = connectionManager.get(connectionId);
+        if(connection != null) {
+            connection.send(event.getData());
+        }
+    }
+
     @Override
     public void onEvent(String connectionId, Event event) {
         switch(event.getType()) {
+            case EventProtocol.RECEIVER_ERROR:
             case EventProtocol.CONNECTION_ERROR:
                 handleConnectionError(connectionId, (ConnectionError)event);
                 break;

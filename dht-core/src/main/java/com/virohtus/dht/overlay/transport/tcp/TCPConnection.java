@@ -20,6 +20,7 @@ public class TCPConnection extends Connection {
         receiver = new TCPReceiver(getId(), delegate, socket);
         sender = new TCPSender(getId(), delegate, socket);
         receiverThread = new Thread(receiver);
+        receiverThread.start();
     }
 
     @Override

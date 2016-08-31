@@ -27,4 +27,16 @@ public class ConnectionManager {
             return connectionSet;
         }
     }
+
+    public Connection get(String connectionId) {
+        synchronized (connections) {
+            return connections.get(connectionId);
+        }
+    }
+
+    public Set<Connection> list() {
+        synchronized (connections) {
+            return new HashSet<>(connections.values());
+        }
+    }
 }
