@@ -19,4 +19,6 @@ public class ReceiveError extends ConnectionError {
     public int getType() {
         return EventProtocol.RECEIVER_ERROR;
     }
+
+
 }

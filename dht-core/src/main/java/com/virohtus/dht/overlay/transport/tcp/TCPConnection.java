@@ -38,9 +38,6 @@ public class TCPConnection extends Connection {
     @Override
     public void close() {
         try {
-            if(!isAlive()) {
-                return;
-            }
             receiverThread.interrupt();
             dataInputStream.close();
             dataOutputStream.close();

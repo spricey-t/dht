@@ -48,4 +48,17 @@ public abstract class Event {
     protected void serialize(final DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeInt(getType());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Event that = (Event) o;
+        return getType() == that.getType();
+    }
+
+    @Override
+    public int hashCode() {
+        return getType();
+    }
 }
