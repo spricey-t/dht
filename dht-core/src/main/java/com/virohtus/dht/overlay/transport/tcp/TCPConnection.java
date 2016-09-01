@@ -3,6 +3,7 @@ package com.virohtus.dht.overlay.transport.tcp;
 import com.virohtus.dht.event.EventFactory;
 import com.virohtus.dht.overlay.node.ConnectionDelegate;
 import com.virohtus.dht.overlay.transport.Connection;
+import com.virohtus.dht.overlay.transport.ConnectionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +20,11 @@ public class TCPConnection extends Connection {
     private final EventFactory eventFactory;
     private Thread receiverThread;
 
-    public TCPConnection(ConnectionDelegate delegate, Socket socket) throws IOException {
-        super(delegate, socket);
-        dataOutputStream = new DataOutputStream(socket.getOutputStream());
-        dataInputStream = new DataInputStream(socket.getInputStream());
-        eventFactory = EventFactory.getInstance();
+    public TCPConnection(ConnectionType connectionType, ConnectionDelegate delegate, Socket socket) throws IOException {
+        super(connectionType, delegate, socket);
+        this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        this.dataInputStream = new DataInputStream(socket.getInputStream());
+        this.eventFactory = EventFactory.getInstance();
         receive();
     }
 

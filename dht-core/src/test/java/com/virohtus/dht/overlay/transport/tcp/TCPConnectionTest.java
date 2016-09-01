@@ -4,6 +4,7 @@ import com.virohtus.dht.event.Event;
 import com.virohtus.dht.event.EventProtocol;
 import com.virohtus.dht.event.StringMessageEvent;
 import com.virohtus.dht.overlay.node.ConnectionDelegate;
+import com.virohtus.dht.overlay.transport.ConnectionType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class TCPConnectionTest {
 
     @Test
     public void testReceive() throws IOException {
-        TCPConnection tcpConnection = new TCPConnection(connectionDelegate, socket);
+        TCPConnection tcpConnection = new TCPConnection(ConnectionType.INCOMING, connectionDelegate, socket);
 
         String testString = "hello world!";
         byte[] testData = testString.getBytes(EventProtocol.STRING_ENCODING);
@@ -68,7 +69,7 @@ public class TCPConnectionTest {
     public void testSend() throws IOException {
         // overwrite mocked input stream so receiver thread doesn't steal incoming data
         Mockito.when(socket.getInputStream()).thenReturn(new PipedInputStream());
-        TCPConnection tcpConnection = new TCPConnection(connectionDelegate, socket);
+        TCPConnection tcpConnection = new TCPConnection(ConnectionType.INCOMING, connectionDelegate, socket);
 
         String testString = "wat up world!";
         byte[] testData = testString.getBytes(EventProtocol.STRING_ENCODING);
@@ -88,7 +89,7 @@ public class TCPConnectionTest {
 
     @Test(expected = IOException.class)
     public void testInputStreamClosed() throws IOException {
-        TCPConnection tcpConnection = new TCPConnection(connectionDelegate, socket);
+        TCPConnection tcpConnection = new TCPConnection(ConnectionType.INCOMING, connectionDelegate, socket);
         tcpConnection.close();
         Assert.assertFalse(tcpConnection.isAlive());
         pipedInputStream.read();
@@ -96,7 +97,7 @@ public class TCPConnectionTest {
 
     @Test(expected = IOException.class)
     public void testOutputStreamClosed() throws IOException {
-        TCPConnection tcpConnection = new TCPConnection(connectionDelegate, socket);
+        TCPConnection tcpConnection = new TCPConnection(ConnectionType.INCOMING, connectionDelegate, socket);
         tcpConnection.close();
         Assert.assertFalse(tcpConnection.isAlive());
         pipedOutputStream.write(2);

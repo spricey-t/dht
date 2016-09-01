@@ -16,7 +16,7 @@ public class ConnectionFactory {
         return instance;
     }
 
-    public TCPConnection createTCPConnection(ConnectionDelegate delegate, Socket socket) throws IOException {
-        return new TCPConnection(delegate, socket);
+    public TCPConnection createTCPConnection(ConnectionType connectionType, ConnectionDelegate delegate, Socket socket) throws IOException {
+        return new TCPConnection(connectionType, delegate, socket);
     }
 }
