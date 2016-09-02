@@ -22,4 +22,19 @@ public class StringMessageEventTest {
         StringMessageEvent reserialized = (StringMessageEvent) eventFactory.createEvent(data);
         Assert.assertEquals(stringMessageEvent, reserialized);
     }
+
+    @Test
+    public void testGetMessage() {
+        String msg = "test msg";
+        StringMessageEvent stringMessageEvent = new StringMessageEvent(msg);
+        Assert.assertEquals(msg, stringMessageEvent.getMessage());
+    }
+
+    @Test
+    public void testHashcode() {
+        String msg = "test msg";
+        StringMessageEvent first = new StringMessageEvent(msg);
+        StringMessageEvent second = new StringMessageEvent(msg);
+        Assert.assertEquals(first.hashCode(), second.hashCode());
+    }
 }

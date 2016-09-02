@@ -5,6 +5,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+        EventTest.class,
         ErrorEventTest.class,
         EventFactoryTest.class,
         StringMessageEventTest.class
