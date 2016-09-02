@@ -18,6 +18,11 @@ public class TCPServer extends Server {
     }
 
     @Override
+    public int getPort() {
+        return serverSocket == null ? 0 : serverSocket.getLocalPort();
+    }
+
+    @Override
     protected void listen() {
         try {
             serverSocket = new ServerSocket(getPort());

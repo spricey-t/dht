@@ -28,6 +28,10 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
         server = new TCPServer(this, serverPort);
     }
 
+    public int getServerPort() {
+        return server.getPort();
+    }
+
     public void start() {
         server.start();
     }
