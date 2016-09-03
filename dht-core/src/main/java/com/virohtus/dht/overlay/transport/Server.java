@@ -46,7 +46,7 @@ public abstract class Server {
         }
     }
 
-    private boolean serverRunning() {
+    public boolean serverRunning() {
         return serverThread != null && serverThread.isAlive();
     }
 }
