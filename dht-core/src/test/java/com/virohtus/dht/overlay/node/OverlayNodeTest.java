@@ -1,5 +1,6 @@
 package com.virohtus.dht.overlay.node;
 
+import com.virohtus.dht.event.Event;
 import com.virohtus.dht.overlay.transport.Connection;
 import com.virohtus.dht.overlay.transport.ConnectionManager;
 import com.virohtus.dht.overlay.transport.ConnectionType;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -112,6 +114,46 @@ public class OverlayNodeTest {
 
         overlayNode.shutdown();
         overlayNode.join();
+    }
+
+    @Test(timeout = 5000)
+    public void testSend() throws InterruptedException, IOException {
+        OverlayNode overlayNode = new OverlayNode(0){};
+        overlayNode.start();
+
+        Thread.sleep(200);
+        Socket socket = new Socket("localhost", overlayNode.getServerPort());
+        Thread.sleep(200);
+
+        Set<Connection> connections = overlayNode.getIncomingConnections();
+        Connection connection = connections.stream().findAny().get();
+        overlayNode.send(connection.getId(), new Event() {
+            @Override
+            public int getType() {
+                return 0;
+            }
+        });
+        DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+        int receivedLength = dataInputStream.readInt();
+        int receivedType = dataInputStream.readInt();
+        Assert.assertEquals(4, receivedLength);
+        Assert.assertEquals(0, receivedType);
+
+        overlayNode.shutdown();
+        dataInputStream.close();
+        socket.close();
+    }
+
+    @Test
+    public void testClientConnectBadSocket() throws IOException {
+        ServerSocket serverSocket = new ServerSocket(0);
+        Socket badSocket = new Socket("localhost", serverSocket.getLocalPort());
+        badSocket.close();
+
+        overlayNode.onClientConnect(badSocket);
+
+        Set<Connection> connections = overlayNode.getIncomingConnections();
+        Assert.assertEquals(0, connections.size());
     }
 
 }

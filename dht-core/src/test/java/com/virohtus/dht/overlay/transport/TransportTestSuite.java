@@ -7,7 +7,9 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         ConnectionErrorTest.class,
-        TCPTestSuite.class
+        TCPTestSuite.class,
+        ConnectionManagerTest.class,
+        ServerTest.class
 })
 public class TransportTestSuite {
 }

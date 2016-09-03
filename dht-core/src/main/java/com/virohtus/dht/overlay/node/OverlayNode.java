@@ -83,9 +83,6 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
             case EventProtocol.CONNECTION_ERROR:
                 handleConnectionError(connectionId, (ConnectionError)event);
                 break;
-            case EventProtocol.STRING_MESSAGE_EVENT:
-                LOG.info(connectionId + ": " + ((StringMessageEvent)event).getMessage());
-                break;
         }
     }
 
