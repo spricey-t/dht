@@ -23,15 +23,4 @@ public class DhtNode extends OverlayNode {
         super.onEvent(connectionId, event);
         LOG.info("received event: " + event.getType());
     }
-
-    public static void main(String[] args) throws IOException, InterruptedException {
-//        DhtNode node = new DhtNode(11081);
-        DhtNode node = new DhtNode(11082);
-        node.start();
-        node.connect(InetAddress.getByName("localhost"), 11081);
-        Thread.sleep(1000);
-        node.getOutgoingConnections().stream().findFirst().get().send( new StringMessageEvent("hello world!").getData());
-        node.shutdown();
-        node.join();
-    }
 }

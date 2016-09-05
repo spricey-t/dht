@@ -25,6 +25,7 @@ public class EventFactory {
         int eventType = dataInputStream.readInt();
 
         switch (eventType) {
+            case EventProtocol.HEARTBEAT_EVENT: return new HeartbeatEvent(data);
             case EventProtocol.ERROR_EVENT: return new ErrorEvent(data);
             case EventProtocol.CONNECTION_ERROR: return new ConnectionError(data);
             case EventProtocol.RECEIVER_ERROR: return new ReceiveError(data);

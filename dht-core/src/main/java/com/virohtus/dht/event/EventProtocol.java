@@ -4,6 +4,8 @@ public interface EventProtocol {
 
     String STRING_ENCODING = "UTF-8";
 
+    int HEARTBEAT_EVENT = 1;
+
     int ERROR_EVENT = 100;
     int CONNECTION_ERROR = 101;
     int RECEIVER_ERROR = 102;
