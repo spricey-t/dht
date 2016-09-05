@@ -16,6 +16,10 @@ public class HeartbeatEvent extends Event {
         super(data);
     }
 
+    public String getStartingOverlayNodeId() {
+        return startingOverlayNodeId;
+    }
+
     @Override
     public int getType() {
         return EventProtocol.HEARTBEAT_EVENT;

@@ -5,6 +5,7 @@ public interface EventProtocol {
     String STRING_ENCODING = "UTF-8";
 
     int HEARTBEAT_EVENT = 1;
+    int REQUEST_FINGER_TABLE_EVENT = 2;
 
     int ERROR_EVENT = 100;
     int CONNECTION_ERROR = 101;

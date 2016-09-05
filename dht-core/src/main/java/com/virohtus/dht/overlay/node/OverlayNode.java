@@ -2,6 +2,7 @@ package com.virohtus.dht.overlay.node;
 
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.event.EventProtocol;
+import com.virohtus.dht.event.HeartbeatEvent;
 import com.virohtus.dht.event.StringMessageEvent;
 import com.virohtus.dht.overlay.transport.*;
 import com.virohtus.dht.overlay.transport.tcp.TCPServer;
@@ -14,18 +15,25 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(OverlayNode.class);
-    private ConnectionFactory connectionFactory = ConnectionFactory.getInstance();
-    private ConnectionManager connectionManager;
-    private Server server;
+    private final String nodeId;
+    private final ConnectionFactory connectionFactory = ConnectionFactory.getInstance();
+    private final ConnectionManager connectionManager;
+    private final Server server;
 
     public OverlayNode(int serverPort) {
+        nodeId = UUID.randomUUID().toString();
         connectionManager = new ConnectionManager();
         server = new TCPServer(this, serverPort);
+    }
+
+    public String getNodeId() {
+        return nodeId;
     }
 
     public int getServerPort() {
@@ -79,6 +87,9 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
     @Override
     public void onEvent(String connectionId, Event event) {
         switch(event.getType()) {
+            case EventProtocol.HEARTBEAT_EVENT:
+                handleHeartbeatEvent(connectionId, (HeartbeatEvent)event);
+                break;
             case EventProtocol.RECEIVER_ERROR:
             case EventProtocol.CONNECTION_ERROR:
                 handleConnectionError(connectionId, (ConnectionError)event);
@@ -107,5 +118,12 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
         LOG.info("client disconnected: " + connectionId);
         Connection connection = connectionManager.remove(connectionId);
         connection.close();
+    }
+
+    private void handleHeartbeatEvent(String connectionId, HeartbeatEvent event) {
+        if(event.getStartingOverlayNodeId().equals(this.getNodeId())) {
+            // report back to initiator
+        }
+        // send to successor
     }
 }
