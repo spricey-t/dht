@@ -24,18 +24,13 @@ public class HeartbeatEvent extends Event {
     @Override
     protected void deserialize(DataInputStream dataInputStream) throws IOException {
         super.deserialize(dataInputStream);
-        int dataLen = dataInputStream.readInt();
-        byte[] data = new byte[dataLen];
-        dataInputStream.readFully(data);
-        startingOverlayNodeId = new String(data, EventProtocol.STRING_ENCODING);
+        startingOverlayNodeId = eventSerializationUtilities.readString(dataInputStream);
     }
 
     @Override
     protected void serialize(DataOutputStream dataOutputStream) throws IOException {
         super.serialize(dataOutputStream);
-        byte[] data = startingOverlayNodeId.getBytes(EventProtocol.STRING_ENCODING);
-        dataOutputStream.writeInt(data.length);
-        dataOutputStream.write(data);
+        eventSerializationUtilities.writeString(dataOutputStream, startingOverlayNodeId);
         dataOutputStream.flush();
     }
 }

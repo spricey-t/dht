@@ -7,6 +7,7 @@ import java.io.*;
 
 public abstract class Event {
     private static final Logger LOG = LoggerFactory.getLogger(Event.class);
+    protected final EventSerializationUtilities eventSerializationUtilities = EventSerializationUtilities.getInstance();
 
     public Event() {
     }

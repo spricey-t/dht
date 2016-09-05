@@ -28,18 +28,14 @@ public class StringMessageEvent extends Event {
     @Override
     protected void deserialize(DataInputStream dataInputStream) throws IOException {
         super.deserialize(dataInputStream);
-        int messageLength = dataInputStream.readInt();
-        byte[] messageData = new byte[messageLength];
-        dataInputStream.readFully(messageData);
-        message = new String(messageData, EventProtocol.STRING_ENCODING);
+        message = eventSerializationUtilities.readString(dataInputStream);
     }
 
     @Override
     protected void serialize(DataOutputStream dataOutputStream) throws IOException {
         super.serialize(dataOutputStream);
-        byte[] messageData = message.getBytes(EventProtocol.STRING_ENCODING);
-        dataOutputStream.writeInt(messageData.length);
-        dataOutputStream.write(messageData);
+        eventSerializationUtilities.writeString(dataOutputStream, message);
+        dataOutputStream.flush();
     }
 
 
