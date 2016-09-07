@@ -28,12 +28,12 @@ public class FingerTableResponseEvent extends Event {
     @Override
     protected void deserialize(DataInputStream dataInputStream) throws IOException {
         super.deserialize(dataInputStream);
-        fingerTable.deserialize(dataInputStream);
+        fingerTable = new FingerTable(dataInputStream);
     }
 
     @Override
     protected void serialize(DataOutputStream dataOutputStream) throws IOException {
         super.serialize(dataOutputStream);
-        fingerTable.serialize(dataOutputStream);
+        dataOutputStream.write(fingerTable.serialize());
     }
 }

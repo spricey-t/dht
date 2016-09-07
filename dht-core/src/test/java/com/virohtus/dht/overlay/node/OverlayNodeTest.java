@@ -5,6 +5,7 @@ import com.virohtus.dht.overlay.transport.Connection;
 import com.virohtus.dht.overlay.transport.ConnectionManager;
 import com.virohtus.dht.overlay.transport.ConnectionType;
 import com.virohtus.dht.overlay.transport.Server;
+import com.virohtus.dht.overlay.transport.tcp.TCPServer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +24,7 @@ public class OverlayNodeTest {
     @Mock private Server server;
     @Spy private ConnectionManager connectionManager;
     @Mock private Connection connection;
+    @Mock private Object startupLock;
 
     @Before
     public void initMocks() {
@@ -103,7 +105,6 @@ public class OverlayNodeTest {
         OverlayNode overlayNode = new OverlayNode(0){};
         overlayNode.start();
 
-        Thread.sleep(200);
         Socket socket = new Socket("localhost", overlayNode.getServerPort());
         Thread.sleep(200);
 
@@ -121,7 +122,6 @@ public class OverlayNodeTest {
         OverlayNode overlayNode = new OverlayNode(0){};
         overlayNode.start();
 
-        Thread.sleep(200);
         Socket socket = new Socket("localhost", overlayNode.getServerPort());
         Thread.sleep(200);
 

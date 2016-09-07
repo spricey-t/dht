@@ -1,5 +1,6 @@
 package com.virohtus.dht.route;
 
+import com.virohtus.dht.overlay.node.OverlayNodeConnectionInfo;
 import com.virohtus.dht.event.EventSerializable;
 
 import java.io.ByteArrayOutputStream;
@@ -11,16 +12,20 @@ import java.util.List;
 
 public class FingerTable implements EventSerializable {
 
-    private List<FingerTableEntry> fingers;
+    private List<OverlayNodeConnectionInfo> fingers;
 
     public FingerTable() {
         fingers = new ArrayList<>();
     }
 
-    public FingerTable(byte[] data) {
+    public FingerTable(DataInputStream dataInputStream) throws IOException {
+        int fingerCount = dataInputStream.readInt();
+        for(int i = 0; i < fingerCount; i++) {
+            fingers.add(new OverlayNodeConnectionInfo(dataInputStream));
+        }
     }
 
-    public FingerTableEntry getFinger(int n) {
+    public OverlayNodeConnectionInfo getFinger(int n) {
         synchronized (fingers) {
             return fingers.get(n);
         }
@@ -28,19 +33,18 @@ public class FingerTable implements EventSerializable {
 
     @Override
     public byte[] serialize() throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
-        try {
+        try (
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream)
+        ) {
             synchronized (fingers) {
                 dataOutputStream.writeInt(fingers.size());
-                for (FingerTableEntry finger : fingers) {
-                    finger.serialize(dataOutputStream);
+                for (OverlayNodeConnectionInfo finger : fingers) {
+                    dataOutputStream.write(finger.serialize());
                 }
             }
             dataOutputStream.flush();
             return byteArrayOutputStream.toByteArray();
-        } finally {
-            dataOutputStream.close();
         }
     }
 }

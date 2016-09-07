@@ -32,7 +32,6 @@ public class ServerTest {
     public void testStartAndShutdown() throws InterruptedException {
         Server server = new TCPServer(serverDelegate, 0);
         server.start();
-        Thread.sleep(200);
         Assert.assertTrue(server.serverRunning());
         server.shutdown();
         server.join();
@@ -42,7 +41,6 @@ public class ServerTest {
     public void testShutdownIdempotent() throws InterruptedException {
         Server server = new TCPServer(serverDelegate, 0);
         server.start();
-        Thread.sleep(200);
         server.shutdown();
         server.join();
         server.shutdown();
@@ -53,7 +51,6 @@ public class ServerTest {
         Server server = new TCPServer(serverDelegate, 0);
         server.start();
         server.start();
-        Thread.sleep(200);
         Assert.assertTrue(server.serverRunning());
         server.shutdown();
         server.join();
@@ -65,16 +62,21 @@ public class ServerTest {
         Server server = new Server(serverDelegate, port) {
             @Override
             protected void listen() {
+                notifyStartupComplete();
                 try {
                     Thread.sleep(TEST_TIMEOUT);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }
+
+            @Override
+            public byte[] getAddress() {
+                return new byte[0];
+            }
         };
 
         server.start();
-        Thread.sleep(200);
         Assert.assertEquals(port, server.getPort());
         server.shutdown();
         server.join();
@@ -84,7 +86,6 @@ public class ServerTest {
     public void testDelegateInvokedOnConnect() throws InterruptedException, IOException {
         Server server = new TCPServer(serverDelegate, 0);
         server.start();
-        Thread.sleep(200);
         Socket socket = new Socket("localhost", server.getPort());
         Thread.sleep(200);
 

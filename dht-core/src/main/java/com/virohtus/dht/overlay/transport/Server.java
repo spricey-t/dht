@@ -9,14 +9,23 @@ public abstract class Server {
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
     private Thread serverThread;
     private final int port;
+    private final Object startupLock;
     protected final ServerDelegate serverDelegate;
 
     public Server(ServerDelegate serverDelegate, int port) {
         this.serverDelegate = serverDelegate;
         this.port = port;
+        this.startupLock = new Object();
     }
 
     protected abstract void listen();
+    public abstract byte[] getAddress();
+
+    protected void notifyStartupComplete() {
+        synchronized (startupLock) {
+            startupLock.notify();
+        }
+    }
 
     public int getPort() {
         return port;
@@ -27,8 +36,15 @@ public abstract class Server {
             return;
         }
 
-        serverThread = new Thread(this::listen);
-        serverThread.start();
+        synchronized (startupLock) {
+            serverThread = new Thread(this::listen);
+            serverThread.start();
+            try {
+                startupLock.wait();
+            } catch (InterruptedException e) {
+                serverDelegate.onServerError(e);
+            }
+        }
         LOG.info("server started");
     }
 

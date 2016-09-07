@@ -26,6 +26,7 @@ public class TCPServer extends Server {
     protected void listen() {
         try {
             serverSocket = new ServerSocket(getPort());
+            notifyStartupComplete();
             while(!Thread.currentThread().isInterrupted()) {
                 serverDelegate.onClientConnect(serverSocket.accept());
             }
@@ -35,6 +36,11 @@ public class TCPServer extends Server {
                 serverDelegate.onServerError(e);
             }
         }
+    }
+
+    @Override
+    public byte[] getAddress() {
+        return serverSocket == null ? null : serverSocket.getInetAddress().getAddress();
     }
 
     @Override

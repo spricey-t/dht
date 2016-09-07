@@ -6,6 +6,7 @@ import com.virohtus.dht.event.HeartbeatEvent;
 import com.virohtus.dht.event.StringMessageEvent;
 import com.virohtus.dht.overlay.transport.*;
 import com.virohtus.dht.overlay.transport.tcp.TCPServer;
+import com.virohtus.dht.route.FingerTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +24,10 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
     private static final Logger LOG = LoggerFactory.getLogger(OverlayNode.class);
     private final String nodeId;
     private final ConnectionFactory connectionFactory = ConnectionFactory.getInstance();
-    private final ConnectionManager connectionManager;
     private final Server server;
+    protected final ConnectionManager connectionManager;
+    protected final FingerTable fingerTable = new FingerTable();
+    private OverlayNodeConnectionInfo connectionInfo;
 
     public OverlayNode(int serverPort) {
         nodeId = UUID.randomUUID().toString();
@@ -40,8 +43,13 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
         return server.getPort();
     }
 
+    public OverlayNodeConnectionInfo getConnectionInfo() {
+        return connectionInfo;
+    }
+
     public void start() {
         server.start();
+        connectionInfo = new OverlayNodeConnectionInfo(server.getAddress(), server.getPort());
     }
 
     public void shutdown() {
@@ -123,7 +131,17 @@ public abstract class OverlayNode implements ServerDelegate, ConnectionDelegate 
     private void handleHeartbeatEvent(String connectionId, HeartbeatEvent event) {
         if(event.getStartingOverlayNodeId().equals(this.getNodeId())) {
             // report back to initiator
+            LOG.info("heartbeat finished!");
+            shutdown();
+            return;
         }
         // send to successor
+        LOG.info("relaying heartbeat");
+        String nextId = getOutgoingConnections().stream().findFirst().get().getId();
+        try {
+            send(nextId, event);
+        } catch (IOException e) {
+            LOG.error("couldnt relay heartbeat " + e.getMessage());
+        }
     }
 }
