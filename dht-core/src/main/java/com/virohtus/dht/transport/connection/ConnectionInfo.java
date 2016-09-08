@@ -43,4 +43,10 @@ public class ConnectionInfo {
         result = 31 * result + port;
         return result;
     }
+
+    @Override
+    public String toString() {
+        byte[] ip = getIpAddress();
+        return String.format("%b.%b.%b.%b:%d", ip[0], ip[1], ip[2], ip[3], getPort());
+    }
 }

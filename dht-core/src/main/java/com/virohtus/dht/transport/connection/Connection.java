@@ -1,7 +1,7 @@
 package com.virohtus.dht.transport.connection;
 
 import com.virohtus.dht.DedicatedTask;
-import com.virohtus.dht.evt.EventHandler;
+import com.virohtus.dht.event.EventHandler;
 
 /**
  * Represents an open connection to another node. All connections are trusted
@@ -12,6 +12,6 @@ public interface Connection extends DedicatedTask {
     int getId();
     ConnectionInfo getConnectionInfo();
     void setEventHandler(EventHandler eventHandler);
-    void send() throws SendFailedException;
+    void send(byte[] data) throws SendFailedException;
     boolean isAlive();
 }

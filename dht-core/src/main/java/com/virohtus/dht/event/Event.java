@@ -5,7 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
+/**
+ * Represents a generic system event. All events must be serializable
+ * into byte[] and deserialized from byte[] - this allows for events to be transmitted
+ * over the internet. This is meant to be extendable so custom events can be created and
+ * handled
+ *
+ */
 public abstract class Event {
+
     private static final Logger LOG = LoggerFactory.getLogger(Event.class);
     protected final EventSerializationUtilities eventSerializationUtilities = EventSerializationUtilities.getInstance();
 

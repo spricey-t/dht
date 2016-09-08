@@ -1,7 +1,8 @@
 package com.virohtus.dht.transport.server;
 
 import com.virohtus.dht.DedicatedTask;
-import com.virohtus.dht.evt.EventHandler;
+import com.virohtus.dht.event.EventHandler;
+import com.virohtus.dht.transport.connection.ConnectionInfo;
 
 /**
  * Defines how a dht server is controlled and where to delegate
@@ -9,5 +10,5 @@ import com.virohtus.dht.evt.EventHandler;
  */
 public interface Server extends DedicatedTask {
     void setEventHandler(EventHandler eventHandler);
-    int getPort();
+    ConnectionInfo getConnectionInfo();
 }
