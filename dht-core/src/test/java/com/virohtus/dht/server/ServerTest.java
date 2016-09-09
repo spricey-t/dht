@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ServerTest {
 
@@ -86,5 +87,37 @@ public class ServerTest {
         Assert.assertFalse(server.isAlive());
         server.shutdown();
         Assert.assertFalse(server.isAlive());
+    }
+
+    @Test(timeout = TEST_TIMEOUT, expected = IOException.class)
+    public void testServerStartFails() throws IOException {
+        Server server1 = null;
+        Server server2 = null;
+        try {
+            server1 = new Server(serverDelegate, executorService, 0);
+            server1.start();
+            // no need to ensure we got here -- other tests will fail
+
+            ExecutorService secondServer = Executors.newSingleThreadExecutor();
+            server2 = new Server(serverDelegate, secondServer, server1.getPort());
+            server2.start(); // expecting io exception
+        } finally {
+            if(server1 != null) {
+                server1.shutdown();
+            }
+            if(server2 != null) {
+                server2.shutdown();
+            }
+        }
+    }
+
+    @Test(timeout = TEST_TIMEOUT)
+    public void testServerJoin() throws IOException {
+        Server server = new Server(serverDelegate, executorService, 0);
+        server.start();
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+            server.shutdown();
+        }, 200, TimeUnit.MILLISECONDS);
+        server.join();
     }
 }

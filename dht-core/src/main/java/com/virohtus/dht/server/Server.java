@@ -18,6 +18,7 @@ public class Server {
     private final Object serverLock;
     private ServerSocket serverSocket;
     private Future serverFuture;
+    private Exception startupException;
 
     public Server(ServerDelegate serverDelegate, ExecutorService executorService, int serverPort) {
         this.serverDelegate = serverDelegate;
@@ -37,7 +38,7 @@ public class Server {
         return serverSocket.getLocalPort();
     }
 
-    public void start() {
+    public void start() throws IOException {
         if(isAlive()) {
             return;
         }
@@ -49,15 +50,36 @@ public class Server {
                 // someone didn't want to wait for wait()
                 Thread.currentThread().interrupt();
             }
+            if(startupException != null) {
+                throw new IOException(startupException);
+            }
         }
     }
 
-    public void shutdown() throws IOException {
+    public void shutdown() {
         if(!isAlive()) {
             return;
         }
         synchronized (serverLock) {
-            serverSocket.close();
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                LOG.error("failed to fully flush data on server shutdown: " + e.getMessage());
+            }
+            try {
+                serverLock.wait();
+            } catch (InterruptedException e) {
+                // someone didn't want to wait for wait()
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    public void join() {
+        if(!isAlive()) {
+            return;
+        }
+        synchronized (serverLock) {
             try {
                 serverLock.wait();
             } catch (InterruptedException e) {
@@ -78,8 +100,9 @@ public class Server {
         try {
             synchronized (serverLock) {
                 serverSocket = new ServerSocket(requestedPort);
-                serverLock.notify();
+                serverLock.notifyAll();
             }
+            LOG.info("server started on port: " + serverSocket.getLocalPort());
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket socket = serverSocket.accept();
@@ -93,7 +116,11 @@ public class Server {
                 serverLock.notify();
             }
         } catch (IOException e) {
-            serverDelegate.onServerError(e);
+            startupException = e;
+            synchronized (serverLock) {
+                serverLock.notifyAll();
+            }
         }
+        LOG.info("server closed");
     }
 }
