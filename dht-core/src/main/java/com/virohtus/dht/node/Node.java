@@ -9,24 +9,29 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-public class Node implements ServerDelegate {
+public class Node implements ServerDelegate, PeerDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final ExecutorService executorService;
+    private final PeerManager peerManager;
     private Server server;
 
     public Node() {
-        this.executorService = Executors.newCachedThreadPool();
+        this.executorService = Executors.newCachedThreadPool((runnable) -> {
+            Thread thread = new Thread(runnable);
+            thread.setName(this.getClass().getSimpleName());
+            return thread;
+        });
+        this.peerManager = new PeerManager(this);
     }
 
     @Override
-    public void onClientConnect(Socket socket) {
-        LOG.info("client connected");
+    public void onSocketConnect(Socket socket) {
+        peerManager.createPeer(socket);
     }
 
-    public void run() throws IOException {
+    public void start() throws IOException {
         if(isServerAlive()) {
             return;
         }
@@ -35,9 +40,24 @@ public class Node implements ServerDelegate {
         server.join();
     }
 
+    public void waitForCompletion() {
+        if(!isServerAlive()) {
+            return;
+        }
+        server.join();
+    }
+
+    public void shutdown() {
+        if(!isServerAlive()) {
+            return;
+        }
+        server.shutdown();
+        waitForCompletion();
+    }
+
     public int getServerPort() {
-        if(isServerAlive()) {
-            return -1;
+        if(!isServerAlive()) {
+            return -2;
         }
         return server.getPort();
     }

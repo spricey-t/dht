@@ -59,7 +59,7 @@ public class ServerTest {
         server.start();
         Socket socket = new Socket("localhost", server.getPort());
         ArgumentCaptor<Socket> socketCaptor = ArgumentCaptor.forClass(Socket.class);
-        Mockito.verify(serverDelegate, Mockito.times(1)).onClientConnect(socketCaptor.capture());
+        Mockito.verify(serverDelegate, Mockito.times(1)).onSocketConnect(socketCaptor.capture());
         Socket received = socketCaptor.getValue();
         Assert.assertEquals(socket.getPort(), received.getLocalPort());
         Assert.assertEquals(socket.getLocalPort(), received.getPort());

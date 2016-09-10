@@ -97,6 +97,7 @@ public class Server {
         if(isAlive()) {
             return;
         }
+        Thread.currentThread().setName(Thread.currentThread().getName() + "-" + this.getClass().getSimpleName());
         try {
             synchronized (serverLock) {
                 serverSocket = new ServerSocket(requestedPort);
@@ -106,11 +107,10 @@ public class Server {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket socket = serverSocket.accept();
-                    serverDelegate.onClientConnect(socket);
+                    serverDelegate.onSocketConnect(socket);
                 }
             } catch(IOException e) {
                 // serverSocket must have been closed
-                LOG.info("server closed");
             }
             synchronized (serverLock) {
                 serverLock.notify();
