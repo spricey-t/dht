@@ -39,22 +39,8 @@ public class Connection {
         dataOutputStream.flush();
     }
 
-    public void close() throws IOException {
-        synchronized (receiveFuture) {
-            if(!receiveFuture.isCancelled() && !receiveFuture.isDone()) {
-                receiveFuture.cancel(true);
-                try {
-                    receiveFuture.wait();
-                } catch (InterruptedException e) {
-                    // someone didn't want to wait for wait()
-                    LOG.warn("connection force closed when waiting to close gracefully");
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-        dataOutputStream.close();
-        dataInputStream.close();
-        socket.close();
+    public void close() {
+        receiveFuture.cancel(false);
     }
 
     private void receive() {
@@ -62,16 +48,20 @@ public class Connection {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 int dataLength = dataInputStream.readInt();
-                LOG.info("received int: " + dataLength);
                 byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data);
                 connectionDelegate.dataReceived(data);
             }
         } catch(IOException e) {
             connectionDelegate.receiveDisrupted(e);
-        }
-        synchronized (receiveFuture) {
-            receiveFuture.notifyAll();
+        } finally {
+            try {
+                dataOutputStream.close();
+                dataInputStream.close();
+                socket.close();
+            } catch (IOException e) {
+                LOG.error("error occurred when closing connection: " + e.getMessage());
+            }
         }
     }
 }

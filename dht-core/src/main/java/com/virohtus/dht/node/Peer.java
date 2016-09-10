@@ -8,6 +8,7 @@ import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.event.EventFactory;
 import com.virohtus.dht.event.EventProtocol;
+import com.virohtus.dht.event.UnsupportedEventException;
 import com.virohtus.dht.utils.DhtUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,14 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public void dataReceived(byte[] data) {
-        Event event = eventFactory.createEvent(data);
+        Event event;
+        try {
+            event = eventFactory.createEvent(data);
+        } catch (Exception e) {
+            LOG.error("failed to construct event! " + e.getMessage());
+            return;
+        }
+
         LOG.info("received event: " + event.getClass().getSimpleName());
         switch (event.getType()) {
             // peer doesn't know about the node -- therefore it doesn't know
@@ -89,7 +97,7 @@ public class Peer implements ConnectionDelegate {
         connection.send(event.getBytes());
     }
 
-    public void close() throws IOException {
+    public void close() {
         connection.close();
     }
 

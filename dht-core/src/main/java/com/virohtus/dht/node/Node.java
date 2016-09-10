@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,6 +23,7 @@ public class Node implements ServerDelegate, PeerDelegate {
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final ExecutorService executorService;
     private final PeerManager peerManager;
+    private final List<NodeDelegate> handlers;
     private Server server;
 
     public Node() {
@@ -30,20 +33,20 @@ public class Node implements ServerDelegate, PeerDelegate {
             return thread;
         });
         this.peerManager = new PeerManager(executorService, this);
+        this.handlers = new ArrayList<>();
     }
 
     @Override
     public void onSocketConnect(Socket socket) {
         try {
             Peer peer = peerManager.createPeer(PeerType.INCOMING, socket);
-            LOG.info("peer connected: " + peer.toString());
-            try {
-                peer.getConnectionDetails();
-            } catch(IOException e) {
-                LOG.error("could not complete connection details request");
-            } catch (InterruptedException e) {
-                LOG.error("wait for connection details interrupted");
-            }
+            // let the server go back to listening for connections - thread will invoke handlers
+            executorService.submit(() -> {
+                Thread.currentThread().setName(getHandlerThreadName());
+                synchronized (handlers) {
+                    handlers.stream().forEach(handler -> handler.peerConnected(peer));
+                }
+            });
         } catch (IOException e) {
             LOG.error("failed to create peer");
         }
@@ -51,16 +54,16 @@ public class Node implements ServerDelegate, PeerDelegate {
 
     @Override
     public void peerEventReceived(Peer peer, Event event) {
-        switch (event.getType()) {
-            case EventProtocol.CONNECTION_DETAILS_REQUEST:
-                sendConnectionDetails(peer);
-                break;
+        synchronized (handlers) {
+            handlers.stream().forEach(handler -> handler.peerEventReceived(peer, event));
         }
     }
 
     @Override
     public void peerDisconnected(Peer peer) {
-        LOG.info("peer disconnected: " + peer.toString());
+        synchronized (handlers) {
+            handlers.stream().forEach(handler -> handler.peerDisconnected(peer));
+        }
     }
 
     public void start() throws IOException {
@@ -93,48 +96,20 @@ public class Node implements ServerDelegate, PeerDelegate {
         return server.getPort();
     }
 
-    public void connectToPeer(String server, int port) throws IOException {
+    public ConnectionDetails getConnectionDetails() {
+        return server.getConnectionDetails();
+    }
+
+    public Peer connectToPeer(String server, int port) throws IOException {
         Socket socket = new Socket(server, port);
-        Peer peer = new Peer(this, executorService, PeerType.OUTGOING, socket);
-        LOG.info("connected to peer: " + peer);
+        return peerManager.createPeer(PeerType.OUTGOING, socket);
     }
 
     private boolean isServerAlive() {
         return server != null && server.isAlive();
     }
 
-    private void sendConnectionDetails(Peer peer) {
-        ConnectionDetails connectionDetails = server.getConnectionDetails();
-        try {
-            peer.send(new ConnectionDetailsResponse(connectionDetails));
-        } catch (IOException e) {
-            LOG.error("failed to send connection details to peer: " + peer + " " + e.getMessage());
-            handleBrokenPeer(peer);
-        }
+    private String getHandlerThreadName() {
+        return Thread.currentThread().getName() + "-Handler";
     }
-
-    private void handleBrokenPeer(Peer peer) {
-        try {
-            peer.close();
-        } catch (IOException e) {
-            LOG.error("failed to fully flush upon close for peer: " + peer + " " + e.getMessage());
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        Node node = new Node();
-        node.start();
-
-        String cmd = "";
-        Scanner keyboard = new Scanner(System.in);
-        while(!cmd.equals("quit")) {
-            cmd = keyboard.nextLine();
-            int port = Integer.parseInt(cmd);
-            node.connectToPeer("localhost", port);
-        }
-
-        node.shutdown();
-        node.waitForCompletion();
-    }
-
 }

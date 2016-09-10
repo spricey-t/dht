@@ -2,6 +2,8 @@ package com.virohtus.dht.node;
 
 import com.virohtus.dht.connection.ConnectionDetails;
 import com.virohtus.dht.event.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -11,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 
 public class PeerManager implements PeerDelegate {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PeerManager.class);
     private final ExecutorService executorService;
     private final PeerDelegate peerDelegate;
     private final Map<String, Peer> peers;
