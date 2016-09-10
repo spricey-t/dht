@@ -2,8 +2,12 @@ package com.virohtus.dht.node;
 
 import com.virohtus.dht.connection.Connection;
 import com.virohtus.dht.connection.ConnectionDelegate;
+import com.virohtus.dht.connection.ConnectionDetails;
+import com.virohtus.dht.connection.event.ConnectionDetailsRequest;
+import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.event.EventFactory;
+import com.virohtus.dht.event.EventProtocol;
 import com.virohtus.dht.utils.DhtUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 public class Peer implements ConnectionDelegate {
@@ -22,6 +27,8 @@ public class Peer implements ConnectionDelegate {
     private final Connection connection;
     private final PeerType peerType;
     private final EventFactory eventFactory;
+    private final Object connectionDetailsLock = new Object();
+    private ConnectionDetails connectionDetails;
 
     public Peer(PeerDelegate peerDelegate, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
         this.id = DhtUtilities.getInstance().generateId();
@@ -41,6 +48,13 @@ public class Peer implements ConnectionDelegate {
             LOG.error("failed to construct event! " + e.getMessage());
             return;
         }
+
+        switch (event.getType()) {
+            case EventProtocol.CONNECTION_DETAILS_RESPONSE:
+                handleConnectionDetailsResponse((ConnectionDetailsResponse) event);
+                break;
+        }
+
         peerDelegate.peerEventReceived(this, event);
     }
 
@@ -58,16 +72,32 @@ public class Peer implements ConnectionDelegate {
         return id;
     }
 
+    public ConnectionDetails getConnectionDetails() throws IOException, InterruptedException {
+        if(connectionDetails == null) {
+            synchronized (connectionDetailsLock) {
+                send(new ConnectionDetailsRequest());
+                connectionDetailsLock.wait();
+            }
+        }
+        return connectionDetails;
+    }
+
     public PeerType getPeerType() {
         return peerType;
     }
 
     public void send(Event event) throws IOException {
-        LOG.info("sending event: " + event.getClass().getSimpleName());
         connection.send(event.getBytes());
     }
 
     public void close() {
         connection.close();
+    }
+
+    private void handleConnectionDetailsResponse(ConnectionDetailsResponse response) {
+        connectionDetails = response.getConnectionDetails();
+        synchronized (connectionDetailsLock) {
+            connectionDetailsLock.notifyAll();
+        }
     }
 }

@@ -38,6 +38,7 @@ public class ConnectionDetailsResponse extends Event {
         super.deserialize(dataInputStream);
         int connectionDetailsLength = dataInputStream.readInt();
         byte[] serializedConnectionDetails = new byte[connectionDetailsLength];
+        dataInputStream.readFully(serializedConnectionDetails);
         connectionDetails = new ConnectionDetails(serializedConnectionDetails);
     }
 

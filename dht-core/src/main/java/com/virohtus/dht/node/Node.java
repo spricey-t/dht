@@ -1,5 +1,6 @@
 package com.virohtus.dht.node;
 
+import com.virohtus.dht.connection.Connection;
 import com.virohtus.dht.connection.ConnectionDetails;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.handler.CoreNodeDelegate;
@@ -104,7 +105,11 @@ public class Node implements ServerDelegate, PeerDelegate {
     }
 
     public ConnectionDetails getConnectionDetails() {
-        return server.getConnectionDetails();
+        ConnectionDetails connectionDetails = new ConnectionDetails(
+                server.getIpAddress(),
+                server.getPort()
+        );
+        return connectionDetails;
     }
 
     public Peer connectToPeer(String server, int port) throws IOException {

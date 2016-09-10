@@ -60,7 +60,7 @@ public class ConnectionDetails implements EventSerializable {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream)
         ) {
-            dataOutputStream.write(ipAddress.length);
+            dataOutputStream.writeInt(ipAddress.length);
             dataOutputStream.write(ipAddress);
             dataOutputStream.writeInt(port);
             dataOutputStream.flush();
@@ -70,6 +70,7 @@ public class ConnectionDetails implements EventSerializable {
 
     @Override
     public String toString() {
-        return String.format("%d.%d.%d.%d:%d", ipAddress[0], ipAddress[1], ipAddress[2], ipAddress[3], port);
+        return String.format("%d.%d.%d.%d:%d", ipAddress[0] & 0xff, ipAddress[1] & 0xff,
+                ipAddress[2] & 0xff, ipAddress[3] & 0xff, port);
     }
 }

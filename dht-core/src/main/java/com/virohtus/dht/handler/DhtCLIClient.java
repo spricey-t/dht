@@ -1,5 +1,6 @@
 package com.virohtus.dht.handler;
 
+import com.virohtus.dht.connection.ConnectionDetails;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.node.Node;
 import com.virohtus.dht.node.NodeDelegate;
@@ -17,6 +18,7 @@ public class DhtCLIClient implements NodeDelegate {
     private static final Map<String, String> usages = new HashMap<>();
     static {
         usages.put("connect",    "connect <server> <port>   - Connects to a peer serving on <server> <port>");
+        usages.put("describe",   "describe <peerId>         - Gets connection details for <peerId>");
         usages.put("disconnect", "disconnect <peerId>       - Disconnects from a peer with <peerId>");
         usages.put("get",        "get <peers|>              - Lists <peers> etc ...");
         usages.put("help",       "help                      - Shows this prompt");
@@ -63,6 +65,9 @@ public class DhtCLIClient implements NodeDelegate {
             case "connect":
                 handleConnectCommand(args);
                 break;
+            case "describe":
+                handleDescribeCommand(args);
+                break;
             case "disconnect":
                 handleDisconnectCommand(args);
                 break;
@@ -99,6 +104,30 @@ public class DhtCLIClient implements NodeDelegate {
         }
     }
 
+    private void handleDescribeCommand(String[] args) {
+        String usage = "Usage: " + usages.get("describe");
+        if(args.length < 2) {
+            System.out.println(usage);
+            return;
+        }
+        String peerId = args[1];
+        Optional<Peer> potentialPeer = node.listPeers().stream().filter(p -> p.getId().equals(peerId)).findFirst();
+        String peerNotFound = "could not find peer with id: " + peerId;
+        if(!potentialPeer.isPresent()) {
+            System.out.println(peerNotFound);
+            return;
+        }
+        Peer peer = potentialPeer.get();
+        try {
+            ConnectionDetails connectionDetails = peer.getConnectionDetails();
+            System.out.println(connectionDetails);
+        } catch (IOException e) {
+            System.out.println("failed to get connection details: " + e.getMessage());
+        } catch (InterruptedException e) {
+            System.out.println("interrupted wait for connection details: " + e.getMessage());
+        }
+    }
+
     private void handleDisconnectCommand(String[] args) {
         String usage = "Usage: " + usages.get("disconnect");
         if(args.length < 2) {
@@ -124,11 +153,17 @@ public class DhtCLIClient implements NodeDelegate {
 
     private void handleGetSubcommand(String[] args) {
         String usage = "Usage: " + usages.get("get");
-        if(args.length < 2 || !args[1].equalsIgnoreCase("peers")) {
+        if(args.length < 2) {
             System.out.println(usage);
             return;
         }
-        node.listPeers().stream().forEach(peer -> System.out.println(peer));
+        switch(args[1].toLowerCase()) {
+            case "peers":
+                node.listPeers().stream().forEach(peer -> System.out.println(peer));
+                break;
+            default:
+                System.out.println(usage);
+        }
     }
 
 

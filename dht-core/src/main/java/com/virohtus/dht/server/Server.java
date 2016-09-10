@@ -5,8 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -39,8 +41,12 @@ public class Server {
         return serverSocket.getLocalPort();
     }
 
-    public ConnectionDetails getConnectionDetails() {
-        return new ConnectionDetails(serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
+    public byte[] getIpAddress() {
+        try {
+            return InetAddress.getLocalHost().getAddress(); // todo externalize this
+        } catch (UnknownHostException e) {
+            return new byte[0];
+        }
     }
 
     public void start() throws IOException {
