@@ -1,7 +1,14 @@
 package com.virohtus.dht.event;
 
 public class UnsupportedEventException extends Exception {
-    public UnsupportedEventException(String message) {
-        super(message);
+    private final int eventType;
+
+    public UnsupportedEventException(int eventType) {
+        super("Unsupported event type: " + eventType);
+        this.eventType = eventType;
+    }
+
+    public int getEventType() {
+        return eventType;
     }
 }
