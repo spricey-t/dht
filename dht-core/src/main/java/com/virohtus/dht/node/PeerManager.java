@@ -39,9 +39,6 @@ public class PeerManager implements PeerDelegate {
                 peers.notifyAll();
             }
         }
-        synchronized (peer) {
-            peer.notifyAll();
-        }
         peerDelegate.peerDisconnected(peer);
     }
 
@@ -55,9 +52,7 @@ public class PeerManager implements PeerDelegate {
 
     public Peer disconnectFromPeer(String peerId) throws PeerNotFoundException, InterruptedException {
         Peer peer = getPeer(peerId);
-        synchronized (peer) {
-            peer.wait();
-        }
+        peer.close();
         return peer;
     }
 

@@ -129,7 +129,9 @@ public class Node implements ServerDelegate, PeerDelegate {
     }
 
     public List<Peer> listPeers() {
-        return peerManager.getAllPeers().stream().sorted().collect(Collectors.toList());
+        return peerManager.getAllPeers().stream()
+                .sorted((p1, p2) -> p1.getId().compareTo(p2.getId()))
+                .collect(Collectors.toList());
     }
 
     private boolean isServerAlive() {

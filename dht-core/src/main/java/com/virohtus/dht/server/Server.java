@@ -110,7 +110,6 @@ public class Server {
                 serverSocket = new ServerSocket(requestedPort);
                 serverLock.notifyAll();
             }
-            LOG.info("server started on port: " + serverSocket.getLocalPort());
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket socket = serverSocket.accept();

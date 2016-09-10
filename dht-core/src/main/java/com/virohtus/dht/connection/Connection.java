@@ -40,7 +40,12 @@ public class Connection {
     }
 
     public void close() {
-        receiveFuture.cancel(false);
+        receiveFuture.cancel(true);
+        try {
+            socket.close(); // force dataInputStream.read to unblock
+        } catch (IOException e) {
+            LOG.error("failed to close connection: " + e.getMessage());
+        }
     }
 
     private void receive() {

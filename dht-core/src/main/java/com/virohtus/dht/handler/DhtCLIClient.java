@@ -16,10 +16,11 @@ public class DhtCLIClient implements NodeDelegate {
 
     private static final Map<String, String> usages = new HashMap<>();
     static {
-            usages.put("connect", "connect <server> <port>");
-            usages.put("disconnect", "disconnect <peerId>");
-            usages.put("get", "get <peers|>");
-            usages.put("help", "help");
+        usages.put("connect",    "connect <server> <port>   - Connects to a peer serving on <server> <port>");
+        usages.put("disconnect", "disconnect <peerId>       - Disconnects from a peer with <peerId>");
+        usages.put("get",        "get <peers|>              - Lists <peers> etc ...");
+        usages.put("help",       "help                      - Shows this prompt");
+        usages.put("quit",       "quit                      - Exits");
     }
     private final Node node;
 
@@ -89,7 +90,7 @@ public class DhtCLIClient implements NodeDelegate {
         try {
             int port = Integer.parseInt(args[2]);
             Peer peer = node.connectToPeer(args[1], port);
-            System.out.println("successfully connected to peer: " + peer);
+            System.out.println("connected to peer: " + peer);
         } catch (NumberFormatException e) {
             System.out.println(usage);
             return;
@@ -114,7 +115,6 @@ public class DhtCLIClient implements NodeDelegate {
         Peer peer = potentialPeer.get();
         try {
             peer = node.disconnectFromPeer(peer.getId());
-            System.out.println("successfully disconnected from peer: " + peer);
         } catch (InterruptedException e) {
             System.out.println("interrupted while waiting for peer to disconnect: " + peerId);
         } catch (PeerNotFoundException e) {
