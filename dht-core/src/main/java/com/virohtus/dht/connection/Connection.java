@@ -27,6 +27,12 @@ public class Connection {
         this.receiveFuture = executorService.submit(this::receive);
     }
 
+    @Override
+    public String toString() {
+        byte[] addr = socket.getInetAddress().getAddress();
+        return String.format("%d.%d.%d.%d:%d", addr[0], addr[1], addr[2], addr[3], socket.getPort());
+    }
+
     public void send(byte[] data) throws IOException {
         dataOutputStream.writeInt(data.length);
         dataOutputStream.write(data);

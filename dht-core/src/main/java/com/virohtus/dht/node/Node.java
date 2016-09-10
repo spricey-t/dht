@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-public class Node implements ServerDelegate, PeerDelegate {
+public class Node implements ServerDelegate, PeerManagerDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final ExecutorService executorService;
@@ -23,12 +24,22 @@ public class Node implements ServerDelegate, PeerDelegate {
             thread.setName(this.getClass().getSimpleName());
             return thread;
         });
-        this.peerManager = new PeerManager(this);
+        this.peerManager = new PeerManager(executorService, this);
     }
 
     @Override
     public void onSocketConnect(Socket socket) {
-        peerManager.createPeer(socket);
+        try {
+            Peer peer = peerManager.createPeer(socket);
+            LOG.info("peer connected: " + peer.toString());
+        } catch (IOException e) {
+            LOG.error("failed to create peer");
+        }
+    }
+
+    @Override
+    public void peerDisconnected(Peer peer) {
+        LOG.info("peer disconnected: " + peer.toString());
     }
 
     public void start() throws IOException {
@@ -65,4 +76,21 @@ public class Node implements ServerDelegate, PeerDelegate {
     private boolean isServerAlive() {
         return server != null && server.isAlive();
     }
+
+    public static void main(String[] args) throws IOException {
+        Node node = new Node();
+        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
+            try {
+                Socket socket = new Socket("localhost", node.getServerPort());
+                System.out.println("socket: " + socket);
+                Thread.sleep(1000);
+                socket.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 1, TimeUnit.SECONDS);
+        node.start();
+        node.waitForCompletion();
+    }
+
 }
