@@ -1,5 +1,7 @@
 package com.virohtus.dht.connection;
 
+import java.util.Arrays;
+
 public class ConnectionDetails {
 
     private final byte[] ipAddress;
@@ -16,5 +18,24 @@ public class ConnectionDetails {
 
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConnectionDetails that = (ConnectionDetails) o;
+
+        if (port != that.port) return false;
+        return Arrays.equals(ipAddress, that.ipAddress);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(ipAddress);
+        result = 31 * result + port;
+        return result;
     }
 }

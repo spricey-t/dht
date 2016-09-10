@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class Node implements ServerDelegate, PeerManagerDelegate {
+public class Node implements ServerDelegate, PeerDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final ExecutorService executorService;

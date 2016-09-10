@@ -3,6 +3,8 @@ package com.virohtus.dht.node;
 import com.virohtus.dht.connection.Connection;
 import com.virohtus.dht.connection.ConnectionDelegate;
 import com.virohtus.dht.connection.ConnectionDetails;
+import com.virohtus.dht.event.Event;
+import com.virohtus.dht.event.EventFactory;
 import com.virohtus.dht.utils.DhtUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,20 +18,22 @@ public class Peer implements ConnectionDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Peer.class);
     private final String id;
-    private final PeerManager peerManager;
+    private final PeerDelegate peerDelegate;
     private final Connection connection;
+    private final EventFactory eventFactory;
     private ConnectionDetails connectionDetails;
 
-    public Peer(PeerManager peerManager, ExecutorService executorService, Socket socket) throws IOException {
+    public Peer(PeerDelegate peerDelegate, ExecutorService executorService, Socket socket) throws IOException {
         this.id = DhtUtilities.getInstance().generateId();
-        this.peerManager = peerManager;
+        this.peerDelegate = peerDelegate;
         this.connection = new Connection(this, executorService, socket);
+        this.eventFactory = EventFactory.getInstance();
         this.connectionDetails = requestConnectionDetails();
     }
 
     @Override
     public void dataReceived(byte[] data) {
-
+        peerDelegate.peerEventReceived(this, eventFactory.createEvent(data));
     }
 
     @Override
@@ -37,7 +41,7 @@ public class Peer implements ConnectionDelegate {
         if(!(e instanceof EOFException)) {
             LOG.error("receive error! " + e.getMessage());
         }
-        peerManager.onPeerDisconnect(this);
+        peerDelegate.peerDisconnected(this);
     }
 
     @Override
@@ -45,7 +49,12 @@ public class Peer implements ConnectionDelegate {
         return String.format("%s - %s", id, connection.toString());
     }
 
-    public void send() {
+    public ConnectionDetails getConnectionDetails() {
+        return connectionDetails;
+    }
+
+    public void send(Event event) {
+        throw new RuntimeException("not implemented");
     }
 
     public String getId() {
@@ -53,6 +62,6 @@ public class Peer implements ConnectionDelegate {
     }
 
     private ConnectionDetails requestConnectionDetails() {
-        return null;
+        throw new RuntimeException("not implemented");
     }
 }
