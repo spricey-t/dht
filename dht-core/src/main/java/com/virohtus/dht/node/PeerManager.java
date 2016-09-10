@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class PeerManager implements PeerDelegate {
@@ -33,6 +35,12 @@ public class PeerManager implements PeerDelegate {
     public void peerDisconnected(Peer peer) {
         synchronized (peers) {
             peers.remove(peer.getId());
+            if(peers.isEmpty()) {
+                peers.notifyAll();
+            }
+        }
+        synchronized (peer) {
+            peer.notifyAll();
         }
         peerDelegate.peerDisconnected(peer);
     }
@@ -41,6 +49,14 @@ public class PeerManager implements PeerDelegate {
         Peer peer = new Peer(this, executorService, peerType, socket);
         synchronized (peers) {
             peers.put(peer.getId(), peer);
+        }
+        return peer;
+    }
+
+    public Peer disconnectFromPeer(String peerId) throws PeerNotFoundException, InterruptedException {
+        Peer peer = getPeer(peerId);
+        synchronized (peer) {
+            peer.wait();
         }
         return peer;
     }
@@ -56,5 +72,31 @@ public class PeerManager implements PeerDelegate {
                     .get();
         }
         */
+    }
+
+    public void shutdown() {
+        synchronized (peers) {
+            peers.values().stream().forEach(peer -> peer.close());
+            try {
+                peers.wait();
+            } catch (InterruptedException e) {
+                LOG.error("peermanger shutdown wait interrupted");
+            }
+        }
+    }
+
+    public Set<Peer> getAllPeers() {
+        synchronized (peers) {
+            return new HashSet<>(peers.values());
+        }
+    }
+
+    private Peer getPeer(String peerId) throws PeerNotFoundException {
+        synchronized (peers) {
+            if(!peers.containsKey(peerId)) {
+                throw new PeerNotFoundException(peerId);
+            }
+            return peers.get(peerId);
+        }
     }
 }

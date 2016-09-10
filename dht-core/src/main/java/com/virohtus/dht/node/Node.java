@@ -1,9 +1,9 @@
 package com.virohtus.dht.node;
 
 import com.virohtus.dht.connection.ConnectionDetails;
-import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
 import com.virohtus.dht.event.Event;
-import com.virohtus.dht.event.EventProtocol;
+import com.virohtus.dht.handler.CoreNodeDelegate;
+import com.virohtus.dht.handler.DhtCLIClient;
 import com.virohtus.dht.server.Server;
 import com.virohtus.dht.server.ServerDelegate;
 import org.slf4j.Logger;
@@ -13,10 +13,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class Node implements ServerDelegate, PeerDelegate {
 
@@ -34,6 +34,7 @@ public class Node implements ServerDelegate, PeerDelegate {
         });
         this.peerManager = new PeerManager(executorService, this);
         this.handlers = new ArrayList<>();
+        addHandler(new CoreNodeDelegate(this));
     }
 
     @Override
@@ -86,7 +87,13 @@ public class Node implements ServerDelegate, PeerDelegate {
             return;
         }
         server.shutdown();
-        waitForCompletion();
+        peerManager.shutdown();
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(3, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
     }
 
     public int getServerPort() {
@@ -103,6 +110,26 @@ public class Node implements ServerDelegate, PeerDelegate {
     public Peer connectToPeer(String server, int port) throws IOException {
         Socket socket = new Socket(server, port);
         return peerManager.createPeer(PeerType.OUTGOING, socket);
+    }
+
+    public Peer disconnectFromPeer(String peerId) throws InterruptedException, PeerNotFoundException {
+        return peerManager.disconnectFromPeer(peerId);
+    }
+
+    public void addHandler(NodeDelegate handler) {
+        synchronized (handlers) {
+            handlers.add(handler);
+        }
+    }
+
+    public void removeHandler(NodeDelegate handler) {
+        synchronized (handlers) {
+            handlers.remove(handler);
+        }
+    }
+
+    public List<Peer> listPeers() {
+        return peerManager.getAllPeers().stream().sorted().collect(Collectors.toList());
     }
 
     private boolean isServerAlive() {
