@@ -62,6 +62,7 @@ public class Connection {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 int dataLength = dataInputStream.readInt();
+                LOG.info("received int: " + dataLength);
                 byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data);
                 connectionDelegate.dataReceived(data);

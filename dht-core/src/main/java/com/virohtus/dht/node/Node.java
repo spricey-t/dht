@@ -1,5 +1,9 @@
 package com.virohtus.dht.node;
 
+import com.virohtus.dht.connection.ConnectionDetails;
+import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
+import com.virohtus.dht.event.Event;
+import com.virohtus.dht.event.EventProtocol;
 import com.virohtus.dht.server.Server;
 import com.virohtus.dht.server.ServerDelegate;
 import org.slf4j.Logger;
@@ -7,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -30,10 +35,26 @@ public class Node implements ServerDelegate, PeerDelegate {
     @Override
     public void onSocketConnect(Socket socket) {
         try {
-            Peer peer = peerManager.createPeer(socket);
+            Peer peer = peerManager.createPeer(PeerType.INCOMING, socket);
             LOG.info("peer connected: " + peer.toString());
+            try {
+                peer.getConnectionDetails();
+            } catch(IOException e) {
+                LOG.error("could not complete connection details request");
+            } catch (InterruptedException e) {
+                LOG.error("wait for connection details interrupted");
+            }
         } catch (IOException e) {
             LOG.error("failed to create peer");
+        }
+    }
+
+    @Override
+    public void peerEventReceived(Peer peer, Event event) {
+        switch (event.getType()) {
+            case EventProtocol.CONNECTION_DETAILS_REQUEST:
+                sendConnectionDetails(peer);
+                break;
         }
     }
 
@@ -48,7 +69,6 @@ public class Node implements ServerDelegate, PeerDelegate {
         }
         server = new Server(this, executorService, 0);
         server.start();
-        server.join();
     }
 
     public void waitForCompletion() {
@@ -73,23 +93,47 @@ public class Node implements ServerDelegate, PeerDelegate {
         return server.getPort();
     }
 
+    public void connectToPeer(String server, int port) throws IOException {
+        Socket socket = new Socket(server, port);
+        Peer peer = new Peer(this, executorService, PeerType.OUTGOING, socket);
+        LOG.info("connected to peer: " + peer);
+    }
+
     private boolean isServerAlive() {
         return server != null && server.isAlive();
     }
 
+    private void sendConnectionDetails(Peer peer) {
+        ConnectionDetails connectionDetails = server.getConnectionDetails();
+        try {
+            peer.send(new ConnectionDetailsResponse(connectionDetails));
+        } catch (IOException e) {
+            LOG.error("failed to send connection details to peer: " + peer + " " + e.getMessage());
+            handleBrokenPeer(peer);
+        }
+    }
+
+    private void handleBrokenPeer(Peer peer) {
+        try {
+            peer.close();
+        } catch (IOException e) {
+            LOG.error("failed to fully flush upon close for peer: " + peer + " " + e.getMessage());
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         Node node = new Node();
-        Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-            try {
-                Socket socket = new Socket("localhost", node.getServerPort());
-                System.out.println("socket: " + socket);
-                Thread.sleep(1000);
-                socket.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 1, TimeUnit.SECONDS);
         node.start();
+
+        String cmd = "";
+        Scanner keyboard = new Scanner(System.in);
+        while(!cmd.equals("quit")) {
+            cmd = keyboard.nextLine();
+            int port = Integer.parseInt(cmd);
+            node.connectToPeer("localhost", port);
+        }
+
+        node.shutdown();
         node.waitForCompletion();
     }
 

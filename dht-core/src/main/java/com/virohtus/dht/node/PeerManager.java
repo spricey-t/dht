@@ -34,8 +34,8 @@ public class PeerManager implements PeerDelegate {
         peerDelegate.peerDisconnected(peer);
     }
 
-    public Peer createPeer(Socket socket) throws IOException {
-        Peer peer = new Peer(this, executorService, socket);
+    public Peer createPeer(PeerType peerType, Socket socket) throws IOException {
+        Peer peer = new Peer(this, executorService, peerType, socket);
         synchronized (peers) {
             peers.put(peer.getId(), peer);
         }
@@ -43,6 +43,8 @@ public class PeerManager implements PeerDelegate {
     }
 
     public Peer getPeerByConnectionDetails(ConnectionDetails connectionDetails) {
+        throw new RuntimeException("havent solved this problem yet");
+        /*
         synchronized (peers) {
             return peers.values()
                     .stream()
@@ -50,5 +52,6 @@ public class PeerManager implements PeerDelegate {
                     .findFirst()
                     .get();
         }
+        */
     }
 }

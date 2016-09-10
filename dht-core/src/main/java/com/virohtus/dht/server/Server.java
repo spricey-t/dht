@@ -1,5 +1,6 @@
 package com.virohtus.dht.server;
 
+import com.virohtus.dht.connection.ConnectionDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,10 @@ public class Server {
             return -1;
         }
         return serverSocket.getLocalPort();
+    }
+
+    public ConnectionDetails getConnectionDetails() {
+        return new ConnectionDetails(serverSocket.getInetAddress().getAddress(), serverSocket.getLocalPort());
     }
 
     public void start() throws IOException {
