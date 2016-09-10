@@ -70,6 +70,7 @@ public class Server {
                 serverLock.wait();
             } catch (InterruptedException e) {
                 // someone didn't want to wait for wait()
+                LOG.warn("server shutdown force stopped when waiting for graceful shutdown");
                 Thread.currentThread().interrupt();
             }
         }
@@ -84,6 +85,7 @@ public class Server {
                 serverLock.wait();
             } catch (InterruptedException e) {
                 // someone didn't want to wait for wait()
+                LOG.warn("server join force stopped when waiting for graceful join");
                 Thread.currentThread().interrupt();
             }
         }
