@@ -1,34 +1,36 @@
 package com.virohtus.dht.connection;
 
 import com.virohtus.dht.event.EventSerializable;
+import com.virohtus.dht.utils.DhtUtilities;
 
 import java.io.*;
 import java.util.Arrays;
 
 public class ConnectionDetails implements EventSerializable {
 
-    private final byte[] ipAddress;
-    private final int port;
+    private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
+    private String ipAddress;
+    private int port;
+
+    public ConnectionDetails() {}
 
     public ConnectionDetails(byte[] data) throws IOException {
         try (
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream)
         ) {
-            int ipAddrLength = dataInputStream.readInt();
-            ipAddress = new byte[ipAddrLength];
-            dataInputStream.readFully(ipAddress);
+            ipAddress = dhtUtilities.readString(dataInputStream);
             port = dataInputStream.readInt();
         }
     }
 
-    public ConnectionDetails(byte[] ipAddress, int port) {
+    public ConnectionDetails(String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
     }
 
-    public byte[] getIpAddress() {
-        return ipAddress.clone();
+    public String getIpAddress() {
+        return ipAddress;
     }
 
     public int getPort() {
@@ -43,13 +45,13 @@ public class ConnectionDetails implements EventSerializable {
         ConnectionDetails that = (ConnectionDetails) o;
 
         if (port != that.port) return false;
-        return Arrays.equals(ipAddress, that.ipAddress);
+        return ipAddress.equals(that.ipAddress);
 
     }
 
     @Override
     public int hashCode() {
-        int result = Arrays.hashCode(ipAddress);
+        int result = ipAddress.hashCode();
         result = 31 * result + port;
         return result;
     }
@@ -60,8 +62,7 @@ public class ConnectionDetails implements EventSerializable {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream)
         ) {
-            dataOutputStream.writeInt(ipAddress.length);
-            dataOutputStream.write(ipAddress);
+            dhtUtilities.writeString(ipAddress, dataOutputStream);
             dataOutputStream.writeInt(port);
             dataOutputStream.flush();
             return byteArrayOutputStream.toByteArray();
@@ -70,7 +71,6 @@ public class ConnectionDetails implements EventSerializable {
 
     @Override
     public String toString() {
-        return String.format("%d.%d.%d.%d:%d", ipAddress[0] & 0xff, ipAddress[1] & 0xff,
-                ipAddress[2] & 0xff, ipAddress[3] & 0xff, port);
+        return ipAddress + ":" + port;
     }
 }

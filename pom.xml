@@ -10,15 +10,20 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>dht-core</module>
+        <module>dht-rest</module>
     </modules>
 
     <properties>
-        <!-- Logging -->
-        <slf4j.version>1.7.21</slf4j.version>
+        <java.version>1.8</java.version>
+        <maven.compiler.version>3.5.1</maven.compiler.version>
 
-        <!-- Testing -->
+        <slf4j.version>1.7.21</slf4j.version>
         <junit.version>4.12</junit.version>
         <mockito.version>2.0.2-beta</mockito.version>
+
+        <spring.version>4.3.2.RELEASE</spring.version>
+        <tomcat7.maven.plugin.version>2.0</tomcat7.maven.plugin.version>
+        <jackson.version>2.7.2</jackson.version>
     </properties>
 
     <dependencies>
@@ -44,6 +49,42 @@
             <artifactId>mockito-all</artifactId>
             <version>${mockito.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+
+        <!-- Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
     </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>

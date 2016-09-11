@@ -86,7 +86,7 @@ public class PeerManager implements PeerDelegate {
         }
     }
 
-    private Peer getPeer(String peerId) throws PeerNotFoundException {
+    public Peer getPeer(String peerId) throws PeerNotFoundException {
         synchronized (peers) {
             if(!peers.containsKey(peerId)) {
                 throw new PeerNotFoundException(peerId);
