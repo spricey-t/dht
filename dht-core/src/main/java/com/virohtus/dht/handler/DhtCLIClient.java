@@ -26,7 +26,7 @@ public class DhtCLIClient implements NodeDelegate {
         usages.put("quit",       "quit                      - Exits");
     }
     private final Node node;
-    private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
+    private final DhtUtilities dhtUtilities = new DhtUtilities();
 
     public DhtCLIClient() {
         this.node = new Node();
@@ -125,7 +125,7 @@ public class DhtCLIClient implements NodeDelegate {
         }
         Peer peer = potentialPeer.get();
         try {
-            ConnectionDetails connectionDetails = peer.getConnectionDetails();
+            ConnectionDetails connectionDetails = peer.getConnectionDetails(node.getId());
             System.out.println(connectionDetails);
         } catch (IOException e) {
             System.out.println("failed to get connection details: " + e.getMessage());

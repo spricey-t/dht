@@ -12,7 +12,8 @@ public class ConnectionDetailsResponse extends Event {
 
     private ConnectionDetails connectionDetails;
 
-    public ConnectionDetailsResponse(ConnectionDetails connectionDetails) {
+    public ConnectionDetailsResponse(String initiatingNodeId, ConnectionDetails connectionDetails) {
+        super(initiatingNodeId);
         this.connectionDetails = connectionDetails;
     }
 

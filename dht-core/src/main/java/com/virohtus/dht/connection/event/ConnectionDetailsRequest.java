@@ -7,7 +7,8 @@ import java.io.IOException;
 
 public class ConnectionDetailsRequest extends Event {
 
-    public ConnectionDetailsRequest() {
+    public ConnectionDetailsRequest(String initiatingNodeId) {
+        super(initiatingNodeId);
     }
 
     public ConnectionDetailsRequest(byte[] data) throws IOException {

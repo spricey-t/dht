@@ -39,7 +39,9 @@ public class PeerController {
     @RequestMapping(path = "{peerId}/connection", method = RequestMethod.GET)
     public ConnectionDetails getConnectionDetails(@PathVariable String peerId) throws PeerNotFoundException, InterruptedException, ExecutionException, TimeoutException {
         Peer peer = node.getPeer(peerId);
-        Future<ConnectionDetails> connectionDetailsFuture = dhtExecutor.submit(peer::getConnectionDetails);
+        Future<ConnectionDetails> connectionDetailsFuture = dhtExecutor.submit(() ->
+            peer.getConnectionDetails(node.getId())
+        );
         return connectionDetailsFuture.get(QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 

@@ -6,4 +6,7 @@ public interface EventProtocol {
 
     int CONNECTION_DETAILS_REQUEST = 1;
     int CONNECTION_DETAILS_RESPONSE = 2;
+    int GET_OVERLAY = 3;
+    int PEER_DETAILS_REQUEST = 4;
+    int PEER_DETAILS_RESPONSE = 5;
 }

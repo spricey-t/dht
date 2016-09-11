@@ -7,7 +7,7 @@ import java.io.*;
 
 public class ConnectionDetails implements EventSerializable {
 
-    private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
+    private final DhtUtilities dhtUtilities = new DhtUtilities();
     private String host;
     private int port;
 

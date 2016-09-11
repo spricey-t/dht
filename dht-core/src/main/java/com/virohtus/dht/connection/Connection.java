@@ -1,5 +1,6 @@
 package com.virohtus.dht.connection;
 
+import com.virohtus.dht.utils.DhtUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.Future;
 public class Connection {
 
     private static final Logger LOG = LoggerFactory.getLogger(Connection.class);
+    private final DhtUtilities dhtUtilities = new DhtUtilities();
     private final ConnectionDelegate connectionDelegate;
     private final Socket socket;
     private final DataOutputStream dataOutputStream;
@@ -34,8 +36,7 @@ public class Connection {
     }
 
     public void send(byte[] data) throws IOException {
-        dataOutputStream.writeInt(data.length);
-        dataOutputStream.write(data);
+        dhtUtilities.writeSizedData(data, dataOutputStream);
         dataOutputStream.flush();
     }
 
@@ -52,9 +53,7 @@ public class Connection {
         Thread.currentThread().setName(Thread.currentThread().getName() + "-" + getClass().getSimpleName());
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                int dataLength = dataInputStream.readInt();
-                byte[] data = new byte[dataLength];
-                dataInputStream.readFully(data);
+                byte[] data = dhtUtilities.readSizedData(dataInputStream);
                 connectionDelegate.dataReceived(data);
             }
         } catch(IOException e) {

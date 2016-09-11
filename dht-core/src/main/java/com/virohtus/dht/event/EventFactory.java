@@ -2,6 +2,9 @@ package com.virohtus.dht.event;
 
 import com.virohtus.dht.connection.event.ConnectionDetailsRequest;
 import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
+import com.virohtus.dht.node.event.GetOverlay;
+import com.virohtus.dht.node.event.PeerDetailsRequest;
+import com.virohtus.dht.node.event.PeerDetailsResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -25,6 +28,10 @@ public class EventFactory {
         switch(type) {
             case EventProtocol.CONNECTION_DETAILS_REQUEST: return new ConnectionDetailsRequest(data);
             case EventProtocol.CONNECTION_DETAILS_RESPONSE: return new ConnectionDetailsResponse(data);
+            case EventProtocol.GET_OVERLAY: return new GetOverlay(data);
+
+            case EventProtocol.PEER_DETAILS_REQUEST: return new PeerDetailsRequest(data);
+            case EventProtocol.PEER_DETAILS_RESPONSE: return new PeerDetailsResponse(data);
         }
 
         throw new UnsupportedEventException(type);
