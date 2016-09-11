@@ -21,6 +21,9 @@
     <!-- Custom Object Mapper -->
     <bean id="dhtObjectMapper" class="com.virohtus.dht.rest.serialize.DhtObjectMapper"/>
 
+    <bean id="restExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool">
+    </bean>
+
     <bean id="dhtNode" class="com.virohtus.dht.node.Node" init-method="start">
     </bean>
 

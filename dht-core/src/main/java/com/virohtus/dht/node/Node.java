@@ -1,10 +1,8 @@
 package com.virohtus.dht.node;
 
-import com.virohtus.dht.connection.Connection;
 import com.virohtus.dht.connection.ConnectionDetails;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.handler.CoreNodeDelegate;
-import com.virohtus.dht.handler.DhtCLIClient;
 import com.virohtus.dht.server.Server;
 import com.virohtus.dht.server.ServerDelegate;
 import com.virohtus.dht.utils.DhtUtilities;
@@ -12,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,6 +131,10 @@ public class Node implements ServerDelegate, PeerDelegate {
         synchronized (handlers) {
             handlers.remove(handler);
         }
+    }
+
+    public Peer getPeer(String peerId) throws PeerNotFoundException {
+        return peerManager.getPeer(peerId);
     }
 
     public List<Peer> listPeers() {
