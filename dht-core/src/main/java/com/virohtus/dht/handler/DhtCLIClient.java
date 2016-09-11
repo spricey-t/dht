@@ -6,6 +6,7 @@ import com.virohtus.dht.node.Node;
 import com.virohtus.dht.node.NodeDelegate;
 import com.virohtus.dht.node.Peer;
 import com.virohtus.dht.node.PeerNotFoundException;
+import com.virohtus.dht.utils.DhtUtilities;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ public class DhtCLIClient implements NodeDelegate {
         usages.put("quit",       "quit                      - Exits");
     }
     private final Node node;
+    private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
 
     public DhtCLIClient() {
         this.node = new Node();
@@ -94,7 +96,11 @@ public class DhtCLIClient implements NodeDelegate {
         }
         try {
             int port = Integer.parseInt(args[2]);
-            Peer peer = node.connectToPeer(args[1], port);
+            ConnectionDetails connectionDetails = new ConnectionDetails(
+                    args[1],
+                    port
+            );
+            Peer peer = node.connectToPeer(connectionDetails);
             System.out.println("connected to peer: " + peer);
         } catch (NumberFormatException e) {
             System.out.println(usage);

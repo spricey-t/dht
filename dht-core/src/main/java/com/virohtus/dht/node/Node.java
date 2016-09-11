@@ -7,10 +7,12 @@ import com.virohtus.dht.handler.CoreNodeDelegate;
 import com.virohtus.dht.handler.DhtCLIClient;
 import com.virohtus.dht.server.Server;
 import com.virohtus.dht.server.ServerDelegate;
+import com.virohtus.dht.utils.DhtUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class Node implements ServerDelegate, PeerDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
+    private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
     private final ExecutorService executorService;
     private final PeerManager peerManager;
     private final List<NodeDelegate> handlers;
@@ -106,14 +109,14 @@ public class Node implements ServerDelegate, PeerDelegate {
 
     public ConnectionDetails getConnectionDetails() {
         ConnectionDetails connectionDetails = new ConnectionDetails(
-                server.getIpAddress(),
+                dhtUtilities.ipAddrToString(server.getIpAddress()),
                 server.getPort()
         );
         return connectionDetails;
     }
 
-    public Peer connectToPeer(String server, int port) throws IOException {
-        Socket socket = new Socket(server, port);
+    public Peer connectToPeer(ConnectionDetails connectionDetails) throws IOException {
+        Socket socket = new Socket(connectionDetails.getIpAddress(), connectionDetails.getPort());
         return peerManager.createPeer(PeerType.OUTGOING, socket);
     }
 

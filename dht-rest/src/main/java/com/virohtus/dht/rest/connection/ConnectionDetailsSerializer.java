@@ -17,7 +17,7 @@ public class ConnectionDetailsSerializer extends JsonSerializer<ConnectionDetail
     public void serialize(ConnectionDetails connectionDetails, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         jsonGenerator.writeStartObject();
 
-        jsonGenerator.writeStringField("ipAddress", dhtUtilities.ipAddrToString(connectionDetails.getIpAddress()));
+        jsonGenerator.writeStringField("ipAddress", connectionDetails.getIpAddress());
         jsonGenerator.writeNumberField("port", connectionDetails.getPort());
 
         jsonGenerator.writeEndObject();
