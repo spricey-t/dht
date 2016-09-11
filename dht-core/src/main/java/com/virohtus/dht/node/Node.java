@@ -22,12 +22,19 @@ public class Node implements ServerDelegate, PeerDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
     private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
+    private final String id;
     private final ExecutorService executorService;
     private final PeerManager peerManager;
     private final List<NodeDelegate> handlers;
+    private final int requestedServerPort;
     private Server server;
 
     public Node() {
+        this(0);
+    }
+
+    public Node(int serverPort) {
+        this.id = dhtUtilities.generateId();
         this.executorService = Executors.newCachedThreadPool((runnable) -> {
             Thread thread = new Thread(runnable);
             thread.setName(this.getClass().getSimpleName());
@@ -36,6 +43,7 @@ public class Node implements ServerDelegate, PeerDelegate {
         this.peerManager = new PeerManager(executorService, this);
         this.handlers = new ArrayList<>();
         addHandler(new CoreNodeDelegate(this));
+        this.requestedServerPort = serverPort;
     }
 
     @Override
@@ -72,7 +80,7 @@ public class Node implements ServerDelegate, PeerDelegate {
         if(isServerAlive()) {
             return;
         }
-        server = new Server(this, executorService, 0);
+        server = new Server(this, executorService, requestedServerPort);
         server.start();
     }
 
@@ -97,6 +105,10 @@ public class Node implements ServerDelegate, PeerDelegate {
         }
     }
 
+    public String getId() {
+        return id;
+    }
+
     public int getServerPort() {
         if(!isServerAlive()) {
             return -2;
@@ -105,6 +117,7 @@ public class Node implements ServerDelegate, PeerDelegate {
     }
 
     public ConnectionDetails getConnectionDetails() {
+        // todo throw exception when server is not started yet
         ConnectionDetails connectionDetails = new ConnectionDetails(
                 dhtUtilities.ipAddrToString(server.getIpAddress()),
                 server.getPort()
@@ -113,7 +126,7 @@ public class Node implements ServerDelegate, PeerDelegate {
     }
 
     public Peer connectToPeer(ConnectionDetails connectionDetails) throws IOException {
-        Socket socket = new Socket(connectionDetails.getIpAddress(), connectionDetails.getPort());
+        Socket socket = new Socket(connectionDetails.getHost(), connectionDetails.getPort());
         return peerManager.createPeer(PeerType.OUTGOING, socket);
     }
 

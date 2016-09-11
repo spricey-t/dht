@@ -4,12 +4,11 @@ import com.virohtus.dht.event.EventSerializable;
 import com.virohtus.dht.utils.DhtUtilities;
 
 import java.io.*;
-import java.util.Arrays;
 
 public class ConnectionDetails implements EventSerializable {
 
     private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
-    private String ipAddress;
+    private String host;
     private int port;
 
     public ConnectionDetails() {}
@@ -19,18 +18,18 @@ public class ConnectionDetails implements EventSerializable {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream)
         ) {
-            ipAddress = dhtUtilities.readString(dataInputStream);
+            host = dhtUtilities.readString(dataInputStream);
             port = dataInputStream.readInt();
         }
     }
 
-    public ConnectionDetails(String ipAddress, int port) {
-        this.ipAddress = ipAddress;
+    public ConnectionDetails(String host, int port) {
+        this.host = host;
         this.port = port;
     }
 
-    public String getIpAddress() {
-        return ipAddress;
+    public String getHost() {
+        return host;
     }
 
     public int getPort() {
@@ -45,13 +44,13 @@ public class ConnectionDetails implements EventSerializable {
         ConnectionDetails that = (ConnectionDetails) o;
 
         if (port != that.port) return false;
-        return ipAddress.equals(that.ipAddress);
+        return host.equals(that.host);
 
     }
 
     @Override
     public int hashCode() {
-        int result = ipAddress.hashCode();
+        int result = host.hashCode();
         result = 31 * result + port;
         return result;
     }
@@ -62,7 +61,7 @@ public class ConnectionDetails implements EventSerializable {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream)
         ) {
-            dhtUtilities.writeString(ipAddress, dataOutputStream);
+            dhtUtilities.writeString(host, dataOutputStream);
             dataOutputStream.writeInt(port);
             dataOutputStream.flush();
             return byteArrayOutputStream.toByteArray();
@@ -71,6 +70,6 @@ public class ConnectionDetails implements EventSerializable {
 
     @Override
     public String toString() {
-        return ipAddress + ":" + port;
+        return host + ":" + port;
     }
 }

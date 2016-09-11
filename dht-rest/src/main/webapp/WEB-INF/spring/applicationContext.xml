@@ -25,6 +25,7 @@
     </bean>
 
     <bean id="dhtNode" class="com.virohtus.dht.node.Node" init-method="start">
+        <constructor-arg name="serverPort" value="11081"/>
     </bean>
 
 </beans>
