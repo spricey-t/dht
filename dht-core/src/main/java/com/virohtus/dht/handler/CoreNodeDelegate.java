@@ -1,7 +1,5 @@
 package com.virohtus.dht.handler;
 
-import com.virohtus.dht.connection.event.ConnectionDetailsRequest;
-import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.event.EventProtocol;
 import com.virohtus.dht.node.Node;
@@ -17,14 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
 public class CoreNodeDelegate implements NodeDelegate {
 
@@ -65,7 +57,7 @@ public class CoreNodeDelegate implements NodeDelegate {
 
     public List<OverlayNode> getOverlay() throws IOException, InterruptedException {
         GetOverlay getOverlay = new GetOverlay(node.getOverlayNode());
-        if(node.listPeers().isEmpty()) {
+        if(node.listSuccessors().isEmpty()) {
             return getOverlay.getOverlayNodes();
         }
         Peer successor = node.getSuccessor(1);

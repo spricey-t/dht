@@ -165,6 +165,10 @@ public class Node implements ServerDelegate, PeerDelegate {
         return peerManager.getSuccessor(n);
     }
 
+    public List<Peer> listSuccessors() {
+        return peerManager.listSuccessors();
+    }
+
     public OverlayNode getOverlayNode() {
         List<Finger> fingerTable = new ArrayList<>();
         peerManager.listSuccessors().stream()

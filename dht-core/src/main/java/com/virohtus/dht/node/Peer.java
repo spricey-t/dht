@@ -3,8 +3,6 @@ package com.virohtus.dht.node;
 import com.virohtus.dht.connection.Connection;
 import com.virohtus.dht.connection.ConnectionDelegate;
 import com.virohtus.dht.connection.ConnectionDetails;
-import com.virohtus.dht.connection.event.ConnectionDetailsRequest;
-import com.virohtus.dht.connection.event.ConnectionDetailsResponse;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.event.EventFactory;
 import com.virohtus.dht.event.EventProtocol;
