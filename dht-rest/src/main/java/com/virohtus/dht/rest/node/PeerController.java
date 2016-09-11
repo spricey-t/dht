@@ -43,6 +43,12 @@ public class PeerController {
         return connectionDetailsFuture.get(QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
+    @RequestMapping(path = "{peerId}", method = RequestMethod.DELETE)
+    public Peer disconnect(@PathVariable String peerId) throws PeerNotFoundException, InterruptedException, TimeoutException, ExecutionException {
+        Future<Peer> peerFuture = dhtExecutor.submit(() -> node.disconnectFromPeer(peerId));
+        return peerFuture.get(QUERY_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
     @ExceptionHandler(IOException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleConnectFailure(IOException e) {
