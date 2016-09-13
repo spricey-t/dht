@@ -4,8 +4,6 @@ import com.virohtus.dht.connection.ConnectionDetails;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.handler.CoreNodeDelegate;
 import com.virohtus.dht.handler.NodeDelegateManager;
-import com.virohtus.dht.node.event.GetOverlay;
-import com.virohtus.dht.node.overlay.Finger;
 import com.virohtus.dht.node.overlay.FingerTable;
 import com.virohtus.dht.node.overlay.OverlayNode;
 import com.virohtus.dht.server.Server;
@@ -16,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.rmi.server.ExportException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -130,9 +127,12 @@ public class Node implements ServerDelegate, PeerDelegate {
 
     public Peer connectToPeer(ConnectionDetails connectionDetails) throws IOException {
         Socket socket = new Socket(connectionDetails.getHost(), connectionDetails.getPort());
-        Peer peer = peerManager.createPeer(PeerType.OUTGOING, socket);
-        nodeDelegateManager.listHandlers().stream().forEach(handler -> handler.connectedToPeer(peer));
-        return peer;
+        return peerManager.createPeer(PeerType.OUTGOING, socket);
+    }
+
+    public void joinNetwork(ConnectionDetails connectionDetails) throws IOException {
+        Peer peer = connectToPeer(connectionDetails);
+        nodeDelegateManager.listHandlers().stream().forEach(handler -> handler.onNetworkJoin(peer));
     }
 
     public Peer disconnectFromPeer(String peerId) throws InterruptedException, PeerNotFoundException {

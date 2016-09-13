@@ -43,7 +43,7 @@ public class DhtCLIClient implements NodeDelegate {
     }
 
     @Override
-    public void connectedToPeer(Peer peer) {
+    public void onNetworkJoin(Peer peer) {
         System.out.println("connected to peer: " + peer);
     }
 
@@ -105,7 +105,8 @@ public class DhtCLIClient implements NodeDelegate {
                     args[1],
                     port
             );
-            Peer peer = node.connectToPeer(connectionDetails);
+            //Peer peer = node.connectToPeer(connectionDetails);
+            node.joinNetwork(connectionDetails);
         } catch (NumberFormatException e) {
             System.out.println(usage);
             return;

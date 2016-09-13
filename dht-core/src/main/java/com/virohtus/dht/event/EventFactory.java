@@ -32,6 +32,10 @@ public class EventFactory {
 
             case EventProtocol.FINGER_TABLE_REQUEST: return new FingerTableRequest(data);
             case EventProtocol.FINGER_TABLE_RESPONSE: return new FingerTableResponse(data);
+
+            case EventProtocol.GET_PREDECESSOR_REQUEST: return new GetPredecessorRequest(data);
+            case EventProtocol.GET_PREDECESSOR_RESPONSE: return new GetPredecessorResponse(data);
+            case EventProtocol.SET_PREDECESSOR_REQUEST: return new SetPredecessorRequest(data);
         }
 
         LOG.error("could not create event with type: " + type);
