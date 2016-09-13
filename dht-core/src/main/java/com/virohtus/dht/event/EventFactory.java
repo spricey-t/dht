@@ -1,8 +1,8 @@
 package com.virohtus.dht.event;
 
-import com.virohtus.dht.node.event.GetOverlay;
-import com.virohtus.dht.node.event.PeerDetailsRequest;
-import com.virohtus.dht.node.event.PeerDetailsResponse;
+import com.virohtus.dht.node.event.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -10,6 +10,7 @@ import java.io.IOException;
 
 public class EventFactory {
 
+    private static final Logger LOG = LoggerFactory.getLogger(EventFactory.class);
     private static final EventFactory instance = new EventFactory();
 
     private EventFactory() {}
@@ -28,8 +29,12 @@ public class EventFactory {
 
             case EventProtocol.PEER_DETAILS_REQUEST: return new PeerDetailsRequest(data);
             case EventProtocol.PEER_DETAILS_RESPONSE: return new PeerDetailsResponse(data);
+
+            case EventProtocol.FINGER_TABLE_REQUEST: return new FingerTableRequest(data);
+            case EventProtocol.FINGER_TABLE_RESPONSE: return new FingerTableResponse(data);
         }
 
+        LOG.error("could not create event with type: " + type);
         throw new UnsupportedEventException(type);
     }
 }

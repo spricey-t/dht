@@ -25,9 +25,9 @@ public class OverlayNode implements EventSerializable {
     private final DhtUtilities dhtUtilities = new DhtUtilities();
     private String nodeId;
     private ConnectionDetails connectionDetails;
-    private List<Finger> fingerTable;
+    private FingerTable fingerTable;
 
-    public OverlayNode(String nodeId, ConnectionDetails connectionDetails, List<Finger> fingerTable) {
+    public OverlayNode(String nodeId, ConnectionDetails connectionDetails, FingerTable fingerTable) {
         this.nodeId = nodeId;
         this.connectionDetails = connectionDetails;
         this.fingerTable = fingerTable;
@@ -39,14 +39,8 @@ public class OverlayNode implements EventSerializable {
             DataInputStream dataInputStream = new DataInputStream(byteArrayInputStream);
         ) {
             nodeId = dhtUtilities.readString(dataInputStream);
-            byte[] connectionDetailsData = dhtUtilities.readSizedData(dataInputStream);
-            connectionDetails = new ConnectionDetails(connectionDetailsData);
-            fingerTable = new ArrayList<>();
-            int fingerTableSize = dataInputStream.readInt();
-            for(int i = 0; i < fingerTableSize; i++) {
-                byte[] fingerData = dhtUtilities.readSizedData(dataInputStream);
-                fingerTable.add(new Finger(fingerData));
-            }
+            connectionDetails = new ConnectionDetails(dhtUtilities.readSizedData(dataInputStream));
+            fingerTable = new FingerTable(dhtUtilities.readSizedData(dataInputStream));
         }
     }
 
@@ -57,13 +51,8 @@ public class OverlayNode implements EventSerializable {
             DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
         ) {
             dhtUtilities.writeString(nodeId, dataOutputStream);
-            byte[] connectionDetailsData = connectionDetails.serialize();
-            dhtUtilities.writeSizedData(connectionDetailsData, dataOutputStream);
-            dataOutputStream.writeInt(fingerTable.size());
-            for(Finger finger : fingerTable) {
-                byte[] fingerData = finger.serialize();
-                dhtUtilities.writeSizedData(fingerData, dataOutputStream);
-            }
+            dhtUtilities.writeSizedData(connectionDetails.serialize(), dataOutputStream);
+            dhtUtilities.writeSizedData(fingerTable.serialize(), dataOutputStream);
             dataOutputStream.flush();
             return byteArrayOutputStream.toByteArray();
         }
@@ -77,7 +66,7 @@ public class OverlayNode implements EventSerializable {
         return connectionDetails;
     }
 
-    public List<Finger> getFingerTable() {
+    public FingerTable getFingerTable() {
         return fingerTable;
     }
 }

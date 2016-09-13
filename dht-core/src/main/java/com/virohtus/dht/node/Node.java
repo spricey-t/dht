@@ -3,8 +3,10 @@ package com.virohtus.dht.node;
 import com.virohtus.dht.connection.ConnectionDetails;
 import com.virohtus.dht.event.Event;
 import com.virohtus.dht.handler.CoreNodeDelegate;
+import com.virohtus.dht.handler.NodeDelegateManager;
 import com.virohtus.dht.node.event.GetOverlay;
 import com.virohtus.dht.node.overlay.Finger;
+import com.virohtus.dht.node.overlay.FingerTable;
 import com.virohtus.dht.node.overlay.OverlayNode;
 import com.virohtus.dht.server.Server;
 import com.virohtus.dht.server.ServerDelegate;
@@ -28,9 +30,10 @@ public class Node implements ServerDelegate, PeerDelegate {
     private final String id;
     private final ExecutorService executorService;
     private final PeerManager peerManager;
-    private final List<NodeDelegate> handlers;
+    private final NodeDelegateManager nodeDelegateManager;
     private final int requestedServerPort;
     private final CoreNodeDelegate coreNodeDelegate;
+    private FingerTable fingerTable;
     private Server server;
 
     public Node() {
@@ -45,10 +48,11 @@ public class Node implements ServerDelegate, PeerDelegate {
             return thread;
         });
         this.peerManager = new PeerManager(executorService, this);
-        this.handlers = new ArrayList<>();
+        this.nodeDelegateManager = new NodeDelegateManager();
         this.coreNodeDelegate = new CoreNodeDelegate(this, executorService);
         addHandler(coreNodeDelegate);
         this.requestedServerPort = serverPort;
+        this.fingerTable = new FingerTable(null, new ArrayList<>());
     }
 
     @Override
@@ -58,9 +62,7 @@ public class Node implements ServerDelegate, PeerDelegate {
             // let the server go back to listening for connections - thread will invoke handlers
             executorService.submit(() -> {
                 Thread.currentThread().setName(getHandlerThreadName());
-                synchronized (handlers) {
-                    handlers.stream().forEach(handler -> handler.peerConnected(peer));
-                }
+                nodeDelegateManager.listHandlers().stream().forEach(handler -> handler.peerConnected(peer));
             });
         } catch (IOException e) {
             LOG.error("failed to create peer");
@@ -69,16 +71,12 @@ public class Node implements ServerDelegate, PeerDelegate {
 
     @Override
     public void peerEventReceived(Peer peer, Event event) {
-        synchronized (handlers) {
-            handlers.stream().forEach(handler -> handler.peerEventReceived(peer, event));
-        }
+        nodeDelegateManager.listHandlers().stream().forEach(handler -> handler.peerEventReceived(peer, event));
     }
 
     @Override
     public void peerDisconnected(Peer peer) {
-        synchronized (handlers) {
-            handlers.stream().forEach(handler -> handler.peerDisconnected(peer));
-        }
+        nodeDelegateManager.listHandlers().stream().forEach(handler -> handler.peerDisconnected(peer));
     }
 
     public void start() throws IOException {
@@ -132,7 +130,9 @@ public class Node implements ServerDelegate, PeerDelegate {
 
     public Peer connectToPeer(ConnectionDetails connectionDetails) throws IOException {
         Socket socket = new Socket(connectionDetails.getHost(), connectionDetails.getPort());
-        return peerManager.createPeer(PeerType.OUTGOING, socket);
+        Peer peer = peerManager.createPeer(PeerType.OUTGOING, socket);
+        nodeDelegateManager.listHandlers().stream().forEach(handler -> handler.connectedToPeer(peer));
+        return peer;
     }
 
     public Peer disconnectFromPeer(String peerId) throws InterruptedException, PeerNotFoundException {
@@ -140,15 +140,11 @@ public class Node implements ServerDelegate, PeerDelegate {
     }
 
     public void addHandler(NodeDelegate handler) {
-        synchronized (handlers) {
-            handlers.add(handler);
-        }
+        nodeDelegateManager.addHandler(handler);
     }
 
     public void removeHandler(NodeDelegate handler) {
-        synchronized (handlers) {
-            handlers.remove(handler);
-        }
+        nodeDelegateManager.removeHandler(handler);
     }
 
     public Peer getPeer(String peerId) throws PeerNotFoundException {
@@ -169,7 +165,16 @@ public class Node implements ServerDelegate, PeerDelegate {
         return peerManager.listSuccessors();
     }
 
+    public FingerTable getFingerTable() {
+        return fingerTable;
+    }
+
+    public void setFingerTable(FingerTable fingerTable) {
+        this.fingerTable = fingerTable;
+    }
+
     public OverlayNode getOverlayNode() {
+        /*
         List<Finger> fingerTable = new ArrayList<>();
         peerManager.listSuccessors().stream()
                 .forEach(p -> {
@@ -183,6 +188,8 @@ public class Node implements ServerDelegate, PeerDelegate {
                         LOG.error("error when generating fingerTable: " + e.getMessage());
                     }
                 });
+        return new OverlayNode(getId(), getConnectionDetails(), fingerTable);
+        */
         return new OverlayNode(getId(), getConnectionDetails(), fingerTable);
     }
 

@@ -6,15 +6,16 @@ import com.virohtus.dht.node.Node;
 import com.virohtus.dht.node.NodeDelegate;
 import com.virohtus.dht.node.Peer;
 import com.virohtus.dht.node.PeerDetails;
-import com.virohtus.dht.node.event.GetOverlay;
-import com.virohtus.dht.node.event.PeerDetailsRequest;
-import com.virohtus.dht.node.event.PeerDetailsResponse;
+import com.virohtus.dht.node.event.*;
+import com.virohtus.dht.node.overlay.Finger;
+import com.virohtus.dht.node.overlay.FingerTable;
 import com.virohtus.dht.node.overlay.OverlayNode;
 import com.virohtus.dht.utils.Resolvable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -25,6 +26,7 @@ public class CoreNodeDelegate implements NodeDelegate {
     private final ExecutorService executorService;
 
     private final Resolvable<GetOverlay> getOverlayResolvable = new Resolvable<>();
+    private final Resolvable<FingerTableResponse> fingerTableResponseResolvable = new Resolvable<>();
 
     public CoreNodeDelegate(Node node, ExecutorService executorService) {
         this.node = node;
@@ -34,6 +36,40 @@ public class CoreNodeDelegate implements NodeDelegate {
     @Override
     public void peerConnected(Peer peer) {
 
+    }
+
+    @Override
+    public void connectedToPeer(Peer peer) {
+        try {
+            peer.send(new FingerTableRequest(node.getId()));
+            FingerTableResponse response = fingerTableResponseResolvable.get();
+            Finger peerFinger = new Finger(
+                peer.getId(),
+                peer.getPeerNodeId(node.getId()),
+                peer.getConnectionDetails(node.getId())
+            );
+
+            // add peer as successor
+            List<Finger> successors = new ArrayList<>();
+            successors.add(peerFinger);
+
+            // calculate predecessor
+            Finger predecessor = (response.getFingerTable().getPredecessor() == null) ?
+                peerFinger :
+                response.getFingerTable().getPredecessor();
+
+            // calculate the rest of the successors
+            // todo
+
+            // update node's fingertable
+            node.setFingerTable(new FingerTable(predecessor, successors));
+
+            // begin telling predecessors to update finger tables
+            // todo
+
+        } catch (Exception e) {
+            LOG.error("finger table creation failed when connecting to peer: " + peer.getId() + " " + e.getMessage());
+        }
     }
 
     @Override
