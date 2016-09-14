@@ -26,7 +26,7 @@ public class DhtCLIClient implements NodeDelegate {
         usages.put("quit",       "quit                      - Exits");
     }
     private final Node node;
-    private final DhtUtilities dhtUtilities = DhtUtilities.getInstance();
+    private final DhtUtilities dhtUtilities = new DhtUtilities();
 
     public DhtCLIClient() {
         this.node = new Node();
@@ -40,6 +40,11 @@ public class DhtCLIClient implements NodeDelegate {
     @Override
     public void peerConnected(Peer peer) {
         System.out.println("peer connected: " + peer);
+    }
+
+    @Override
+    public void onNetworkJoin(Peer peer) {
+        System.out.println("connected to peer: " + peer);
     }
 
     @Override
@@ -100,8 +105,8 @@ public class DhtCLIClient implements NodeDelegate {
                     args[1],
                     port
             );
-            Peer peer = node.connectToPeer(connectionDetails);
-            System.out.println("connected to peer: " + peer);
+            //Peer peer = node.connectToPeer(connectionDetails);
+            node.joinNetwork(connectionDetails);
         } catch (NumberFormatException e) {
             System.out.println(usage);
             return;
@@ -125,7 +130,7 @@ public class DhtCLIClient implements NodeDelegate {
         }
         Peer peer = potentialPeer.get();
         try {
-            ConnectionDetails connectionDetails = peer.getConnectionDetails();
+            ConnectionDetails connectionDetails = peer.getConnectionDetails(node.getId());
             System.out.println(connectionDetails);
         } catch (IOException e) {
             System.out.println("failed to get connection details: " + e.getMessage());

@@ -1,10 +1,21 @@
 package com.virohtus.dht.event;
 
+import com.virohtus.dht.utils.DhtUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 
 public abstract class Event {
 
-    public Event() {}
+    private static final Logger LOG = LoggerFactory.getLogger(Event.class);
+    protected DhtUtilities dhtUtilities = new DhtUtilities();
+
+    private String initiatingNodeId;
+
+    public Event(String initiatingNodeId) {
+        this.initiatingNodeId = initiatingNodeId;
+    }
 
     public Event(byte[] data) throws IOException {
         try (
@@ -16,6 +27,10 @@ public abstract class Event {
     }
 
     public abstract int getType();
+
+    public String getInitiatingNodeId() {
+        return initiatingNodeId;
+    }
 
     public byte[] getBytes() throws IOException {
         try (
@@ -30,6 +45,7 @@ public abstract class Event {
 
     protected void serialize(DataOutputStream dataOutputStream) throws IOException {
         dataOutputStream.writeInt(getType());
+        dhtUtilities.writeString(initiatingNodeId, dataOutputStream);
     }
 
     protected void deserialize(DataInputStream dataInputStream) throws IOException {
@@ -38,5 +54,6 @@ public abstract class Event {
             throw new IllegalArgumentException("cannot construct event: " + getClass().getName() +
                     " Unmatched event types, received: " + type + " expected: " + getType());
         }
+        initiatingNodeId = dhtUtilities.readString(dataInputStream);
     }
 }

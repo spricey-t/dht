@@ -14,6 +14,7 @@ public class NodeSerializer extends JsonSerializer<Node> {
     public void serialize(Node node, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         jsonGenerator.writeStartObject();
 
+        jsonGenerator.writeStringField("nodeId", node.getId());
         jsonGenerator.writeObjectField("connectionDetails", node.getConnectionDetails());
 
         jsonGenerator.writeEndObject();

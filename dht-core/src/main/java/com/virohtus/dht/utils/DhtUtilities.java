@@ -9,14 +9,6 @@ import java.util.UUID;
 
 public class DhtUtilities {
 
-    private static final DhtUtilities instance = new DhtUtilities();
-
-    private DhtUtilities() {}
-
-    public static DhtUtilities getInstance() {
-        return instance;
-    }
-
     public String generateId() {
         return UUID.randomUUID().toString().replace("-", "");
     }
@@ -49,5 +41,17 @@ public class DhtUtilities {
         byte[] data = new byte[dataLength];
         dataInputStream.readFully(data);
         return new String(data, EventProtocol.STRING_ENCODING);
+    }
+
+    public byte[] readSizedData(DataInputStream dataInputStream) throws IOException {
+        int dataLength = dataInputStream.readInt();
+        byte[] data = new byte[dataLength];
+        dataInputStream.readFully(data);
+        return data;
+    }
+
+    public void writeSizedData(byte[] data, DataOutputStream dataOutputStream) throws IOException {
+        dataOutputStream.writeInt(data.length);
+        dataOutputStream.write(data);
     }
 }

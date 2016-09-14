@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 public class PeerManager implements PeerDelegate {
@@ -19,11 +16,13 @@ public class PeerManager implements PeerDelegate {
     private final ExecutorService executorService;
     private final PeerDelegate peerDelegate;
     private final Map<String, Peer> peers;
+    private final List<String> successors;
 
     public PeerManager(ExecutorService executorService, PeerDelegate peerDelegate) {
         this.executorService = executorService;
         this.peerDelegate = peerDelegate;
         this.peers = new HashMap<>();
+        this.successors = new ArrayList<>();
     }
 
     @Override
@@ -39,6 +38,12 @@ public class PeerManager implements PeerDelegate {
                 peers.notifyAll();
             }
         }
+        if(peer.getPeerType().equals(PeerType.OUTGOING)) {
+            synchronized (successors) {
+                successors.remove(peer.getId());
+            }
+            // todo initiate reconstruction of finger table
+        }
         peerDelegate.peerDisconnected(peer);
     }
 
@@ -46,6 +51,11 @@ public class PeerManager implements PeerDelegate {
         Peer peer = new Peer(this, executorService, peerType, socket);
         synchronized (peers) {
             peers.put(peer.getId(), peer);
+        }
+        if(peerType.equals(PeerType.OUTGOING)) {
+            synchronized (successors) {
+                successors.add(peer.getId());
+            }
         }
         return peer;
     }
@@ -93,5 +103,31 @@ public class PeerManager implements PeerDelegate {
             }
             return peers.get(peerId);
         }
+    }
+
+    public Peer getSuccessor(int position) {
+        String peerId;
+        synchronized (successors) {
+            if(successors.isEmpty()) {
+                // todo throw exception instead of return null
+                return null;
+            }
+            peerId = successors.get(position - 1);
+        }
+        synchronized (peers) {
+            return peers.get(peerId);
+        }
+    }
+
+    public List<Peer> listSuccessors() {
+        List<Peer> successorPeers = new ArrayList<>();
+        List<String> currentSuccessors;
+        synchronized (successors) {
+            currentSuccessors = new ArrayList<>(successors);
+        }
+        synchronized (peers) {
+            currentSuccessors.stream().forEach(s -> successorPeers.add(peers.get(s)));
+        }
+        return successorPeers;
     }
 }

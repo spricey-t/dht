@@ -1,6 +1,5 @@
 package com.virohtus.dht.server;
 
-import com.virohtus.dht.connection.ConnectionDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
