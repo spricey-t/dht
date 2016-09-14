@@ -7,6 +7,7 @@ import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
+import com.virohtus.dht.core.util.IdUtil;
 import com.virohtus.dht.core.util.Resolvable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ public class Peer implements ConnectionDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Peer.class);
 
+    private final String peerId;
     private final EventFactory eventFactory = EventFactory.getInstance();
     private final EventHandler eventHandler;
     private final ExecutorService executorService;
@@ -27,13 +29,18 @@ public class Peer implements ConnectionDelegate {
     protected final Resolvable<PeerDetails> peerDetails = new Resolvable<>();
 
     public Peer(EventHandler handler, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
+        this.peerId = new IdUtil().generateId();
         this.eventHandler = handler;
         this.executorService = executorService;
         this.peerType = peerType;
         this.connection = new Connection(this, executorService, socket);
     }
 
-    public String getPeerId() throws InterruptedException {
+    public String getPeerId() {
+        return peerId;
+    }
+
+    public String getPeerNodeId() throws InterruptedException {
         return peerDetails.get().getNodeId();
     }
 

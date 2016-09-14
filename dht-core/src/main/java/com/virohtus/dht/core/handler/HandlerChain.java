@@ -12,11 +12,7 @@ public class HandlerChain implements EventHandler {
 
     @Override
     public void handle(Event event) {
-        // holds the lock until all handlers have completed
-        // only 1 thread can run at a time
-        synchronized (handlers) {
-            handlers.stream().forEach(handler -> handler.handle(event));
-        }
+        listHandlers().stream().forEach(handler -> handler.handle(event));
     }
 
     public void addHandler(EventHandler handler) {
@@ -28,6 +24,12 @@ public class HandlerChain implements EventHandler {
     public void removeHandler(EventHandler handler) {
         synchronized (handlers) {
             handlers.remove(handler);
+        }
+    }
+
+    public List<EventHandler> listHandlers() {
+        synchronized (handlers) {
+            return new ArrayList<>(handlers);
         }
     }
 }

@@ -1,5 +1,9 @@
 package com.virohtus.dht.core.event;
 
+import com.virohtus.dht.core.DhtProtocol;
+import com.virohtus.dht.core.peer.event.PeerDetailsRequest;
+import com.virohtus.dht.core.peer.event.PeerDetailsResponse;
+import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.util.DhtInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -21,6 +25,9 @@ public class EventFactory {
 
         int eventType = inputStream.readInt();
         switch (eventType) {
+            case DhtProtocol.PEER_DISCONNECTED: return new PeerDisconnected(data);
+            case DhtProtocol.PEER_DETAILS_REQUEST: return new PeerDetailsRequest(data);
+            case DhtProtocol.PEER_DETAILS_RESPONSE: return new PeerDetailsResponse(data);
         }
 
         throw new UnsupportedEventTypeException(eventType);
