@@ -13,6 +13,7 @@ public class HandlerChain implements EventHandler {
     @Override
     public void handle(Event event) {
         // holds the lock until all handlers have completed
+        // only 1 thread can run at a time
         synchronized (handlers) {
             handlers.stream().forEach(handler -> handler.handle(event));
         }

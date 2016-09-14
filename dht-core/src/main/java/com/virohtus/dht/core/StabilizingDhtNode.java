@@ -1,6 +1,6 @@
 package com.virohtus.dht.core;
 
-import com.virohtus.dht.core.engine.DhtEngine;
+import com.virohtus.dht.core.engine.DhtManager;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.handler.LoggingHandler;
@@ -25,9 +25,9 @@ public class StabilizingDhtNode implements DhtNode {
         handlerChain = new HandlerChain();
         peerPool = new PeerPool();
 
-        handlerChain.addHandler(new PeerPoolHandler(peerPool));
-        handlerChain.addHandler(new DhtEngine());
         handlerChain.addHandler(new LoggingHandler());
+        handlerChain.addHandler(new PeerPoolHandler(peerPool));
+        handlerChain.addHandler(new DhtManager(handlerChain));
     }
 
     @Override
