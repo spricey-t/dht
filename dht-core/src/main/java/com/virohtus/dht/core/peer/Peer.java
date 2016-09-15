@@ -52,6 +52,10 @@ public class Peer implements ConnectionDelegate {
         connection.send(event.getBytes());
     }
 
+    public void shutdown() {
+        connection.close();
+    }
+
     @Override
     public void dataReceived(byte[] data) {
         try {

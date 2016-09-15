@@ -1,7 +1,9 @@
 package com.virohtus.dht.core.peer;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class PeerPool {
 
@@ -28,6 +30,12 @@ public class PeerPool {
                 return pool.remove(peerId);
             }
             throw new PeerNotFoundException(peerId);
+        }
+    }
+
+    public Set<Peer> listPeers() {
+        synchronized (pool) {
+            return new HashSet<>(pool.values());
         }
     }
 }
