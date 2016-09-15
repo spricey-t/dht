@@ -14,7 +14,7 @@ public class LoggingHandler implements EventHandler {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingHandler.class);
 
     @Override
-    public void handle(Event event) {
+    public void handle(String peerId, Event event) {
         switch (event.getType()) {
             case DhtProtocol.SERVER_START:
                 LOG.info("server started on port " + ((ServerStart)event).getPort());
@@ -25,14 +25,16 @@ public class LoggingHandler implements EventHandler {
             case DhtProtocol.SOCKET_CONNECT:
                 break;
             case DhtProtocol.PEER_CONNECTED:
-                LOG.info("peer connected: " + ((PeerConnected)event).toString());
+                LOG.info("peer connected: " + ((PeerConnected)event).getPeer().toString());
                 break;
             case DhtProtocol.PEER_DISCONNECTED:
-                LOG.info("peer disconnected: " + ((PeerDisconnected)event).toString());
+                LOG.info("peer disconnected: " + ((PeerDisconnected)event).getPeer().toString());
                 break;
             case DhtProtocol.PEER_DETAILS_REQUEST:
+                LOG.info("received PeerDetailsRequest");
                 break;
             case DhtProtocol.PEER_DETAILS_RESPONSE:
+                LOG.info("received PeerDetailsResponse");
                 break;
         }
     }

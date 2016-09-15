@@ -5,6 +5,8 @@ import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.handler.LoggingHandler;
 import com.virohtus.dht.core.network.FingerTable;
+import com.virohtus.dht.core.peer.Peer;
+import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
 import com.virohtus.dht.core.peer.handler.PeerPoolHandler;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
@@ -13,10 +15,12 @@ import com.virohtus.dht.core.transport.server.TCPServer;
 import com.virohtus.dht.core.transport.server.event.ServerShutdown;
 import com.virohtus.dht.core.transport.server.event.ServerStart;
 import com.virohtus.dht.core.transport.server.handler.SocketConnectionHandler;
+import com.virohtus.dht.core.util.IdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -32,30 +36,34 @@ public class StabilizingDhtNode implements DhtNode {
     private final PeerPool peerPool;
     private final Server server;
 
+    private final String id;
+
     public StabilizingDhtNode() {
         executorService = Executors.newCachedThreadPool();
         handlerChain = new HandlerChain();
-        dhtManager = new DhtManager(handlerChain, executorService);
+        dhtManager = new DhtManager(handlerChain, executorService, this);
         peerPool = new PeerPool();
         server = new TCPServer(handlerChain, executorService);
 
-        handlerChain.addHandler(new LoggingHandler());
         handlerChain.addHandler(new SocketConnectionHandler(handlerChain, executorService));
         handlerChain.addHandler(new PeerPoolHandler(peerPool));
         handlerChain.addHandler(dhtManager);
+        handlerChain.addHandler(new LoggingHandler());
+
+        id = new IdUtil().generateId();
     }
 
     @Override
     public void start(int serverPort) throws IOException {
         server.start(serverPort);
-        handlerChain.handle(new ServerStart(server.getConnectionInfo().getPort()));
+        handlerChain.handle(null, new ServerStart(server.getConnectionInfo().getPort()));
     }
 
     @Override
     public void shutdown() {
         server.shutdown();
 
-        handlerChain.handle(new ServerShutdown());
+        handlerChain.handle(null, new ServerShutdown());
 
         executorService.shutdown();
         try {
@@ -87,12 +95,17 @@ public class StabilizingDhtNode implements DhtNode {
 
     @Override
     public String getNodeId() {
-        return null;
+        return id;
+    }
+
+    @Override
+    public Peer getPeer(String peerId) throws PeerNotFoundException {
+        return peerPool.getPeer(peerId);
     }
 
     @Override
     public ConnectionInfo getConnectionInfo() {
-        return null;
+        return server.getConnectionInfo();
     }
 
     @Override
@@ -102,10 +115,20 @@ public class StabilizingDhtNode implements DhtNode {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         StabilizingDhtNode node = new StabilizingDhtNode();
-        node.start(11081);
-//        node.start(11082);
-//        node.joinNetwork(new ConnectionInfo("localhost", 11081));
-        Thread.sleep(10000);
+        node.start(0);
+
+        String cmd = "";
+        Scanner keyboard = new Scanner(System.in);
+        while(!cmd.equals("quit")) {
+            cmd = keyboard.nextLine();
+            String[] cmdArgs = cmd.split("\\s");
+            switch (cmdArgs[0]) {
+                case "connect":
+                    node.joinNetwork(new ConnectionInfo(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+                    break;
+            }
+        }
+
         node.shutdown();
     }
 }

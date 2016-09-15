@@ -121,7 +121,7 @@ public class TCPServer implements Server {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket socket = serverSocket.accept();
-                    executorService.submit(() -> eventHandler.handle(new SocketConnect(socket)));
+                    executorService.submit(() -> eventHandler.handle(null, new SocketConnect(socket)));
                 }
             } catch(IOException e) {
                 // serverSocket must have been closed

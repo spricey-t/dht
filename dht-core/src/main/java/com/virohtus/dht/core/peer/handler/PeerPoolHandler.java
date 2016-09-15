@@ -25,7 +25,7 @@ public class PeerPoolHandler implements EventHandler {
     }
 
     @Override
-    public void handle(Event event) {
+    public void handle(String peerId, Event event) {
         switch (event.getType()) {
             case DhtProtocol.SERVER_SHUTDOWN:
                 handleServerShutdown((ServerShutdown)event);
@@ -35,6 +35,9 @@ public class PeerPoolHandler implements EventHandler {
                 break;
             case DhtProtocol.PEER_DISCONNECTED:
                 handlePeerDisconnected((PeerDisconnected)event);
+                break;
+            case DhtProtocol.PEER_DETAILS_RESPONSE:
+                handlePeerDetailsResponse(peerId, (PeerDetailsResponse)event);
                 break;
         }
     }
@@ -68,6 +71,15 @@ public class PeerPoolHandler implements EventHandler {
             }
         } catch (PeerNotFoundException e) {
             LOG.error("tried to remove non existent peer: " + event.getPeer());
+        }
+    }
+
+    private void handlePeerDetailsResponse(String peerId, PeerDetailsResponse response) {
+        try {
+            peerPool.getPeer(peerId).peerDetails.resolve(response.getPeerDetails());
+            LOG.info("received peerdetails: " + response.getPeerDetails().getNodeId());
+        } catch (PeerNotFoundException e) {
+            LOG.warn("received peer details for nonexistent peer: " + peerId);
         }
     }
 }

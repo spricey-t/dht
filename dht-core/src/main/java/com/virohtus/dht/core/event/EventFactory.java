@@ -5,12 +5,15 @@ import com.virohtus.dht.core.peer.event.PeerDetailsRequest;
 import com.virohtus.dht.core.peer.event.PeerDetailsResponse;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.util.DhtInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 public class EventFactory {
 
+    private static final Logger LOG = LoggerFactory.getLogger(EventFactory.class);
     private static final EventFactory instance = new EventFactory();
 
     private EventFactory() {}
@@ -30,6 +33,7 @@ public class EventFactory {
             case DhtProtocol.PEER_DETAILS_RESPONSE: return new PeerDetailsResponse(data);
         }
 
+        LOG.error("received unsupported event type: " + eventType);
         throw new UnsupportedEventTypeException(eventType);
     }
 }

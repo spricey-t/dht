@@ -26,7 +26,7 @@ public class Peer implements ConnectionDelegate {
     private final ExecutorService executorService;
     private final PeerType peerType;
     private final Connection connection;
-    protected final Resolvable<PeerDetails> peerDetails = new Resolvable<>();
+    public final Resolvable<PeerDetails> peerDetails = new Resolvable<>();
 
     public Peer(EventHandler handler, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
         this.peerId = new IdUtil().generateId();
@@ -38,6 +38,10 @@ public class Peer implements ConnectionDelegate {
 
     public String getPeerId() {
         return peerId;
+    }
+
+    public PeerType getPeerType() {
+        return peerType;
     }
 
     public String getPeerNodeId() throws InterruptedException {
@@ -59,7 +63,7 @@ public class Peer implements ConnectionDelegate {
     @Override
     public void dataReceived(byte[] data) {
         try {
-            eventHandler.handle(eventFactory.createEvent(data));
+            eventHandler.handle(this.getPeerId(), eventFactory.createEvent(data));
         } catch (Exception e) {
             LOG.error("error creating event: " + e.getMessage());
             connection.close();
@@ -68,6 +72,11 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public void receiveDisrupted(IOException e) {
-        eventHandler.handle(new PeerDisconnected(this));
+        eventHandler.handle(this.peerId, new PeerDisconnected(this));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s", getPeerId());
     }
 }

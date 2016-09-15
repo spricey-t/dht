@@ -26,7 +26,7 @@ public class SocketConnectionHandler implements EventHandler {
     }
 
     @Override
-    public void handle(Event event) {
+    public void handle(String peerId, Event event) {
         switch (event.getType()) {
             case DhtProtocol.SOCKET_CONNECT:
                 handleSocketConnectEvent((SocketConnect)event);
@@ -37,7 +37,7 @@ public class SocketConnectionHandler implements EventHandler {
     private void handleSocketConnectEvent(SocketConnect event) {
         try {
             Peer peer = new Peer(handlerChain, executorService, PeerType.INCOMING, event.getSocket());
-            handlerChain.handle(new PeerConnected(peer));
+            handlerChain.handle(peer.getPeerId(), new PeerConnected(peer));
         } catch (IOException e) {
             LOG.error("failed to create peer from socket: " + e.getMessage());
             try {

@@ -11,8 +11,8 @@ public class HandlerChain implements EventHandler {
     private final List<EventHandler> handlers = new ArrayList<>();
 
     @Override
-    public void handle(Event event) {
-        listHandlers().stream().forEach(handler -> handler.handle(event));
+    public void handle(String peerId, Event event) {
+        listHandlers().stream().forEach(handler -> handler.handle(peerId, event));
     }
 
     public void addHandler(EventHandler handler) {
