@@ -1,7 +1,7 @@
 package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.event.EventHandler;
-import com.virohtus.dht.core.network.FingerTable;
+import com.virohtus.dht.core.network.NodeNetwork;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
@@ -18,5 +18,5 @@ public interface DhtNode {
     String getNodeId();
     Peer getPeer(String peerId) throws PeerNotFoundException;
     ConnectionInfo getConnectionInfo();
-    FingerTable getFingerTable();
+    NodeNetwork getNodeNetwork();
 }

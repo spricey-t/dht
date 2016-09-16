@@ -4,7 +4,7 @@ import com.virohtus.dht.core.engine.DhtManager;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.handler.LoggingHandler;
-import com.virohtus.dht.core.network.FingerTable;
+import com.virohtus.dht.core.network.NodeNetwork;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
@@ -109,7 +109,7 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public FingerTable getFingerTable() {
+    public NodeNetwork getNodeNetwork() {
         return null;
     }
 

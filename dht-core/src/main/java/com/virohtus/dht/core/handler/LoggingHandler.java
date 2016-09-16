@@ -3,6 +3,7 @@ package com.virohtus.dht.core.handler;
 import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventHandler;
+import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.event.PeerConnected;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.server.event.ServerStart;
@@ -25,17 +26,20 @@ public class LoggingHandler implements EventHandler {
             case DhtProtocol.SOCKET_CONNECT:
                 break;
             case DhtProtocol.PEER_CONNECTED:
-                LOG.info("peer connected: " + ((PeerConnected)event).getPeer().toString());
+                handlePeerConnected(peerId, (PeerConnected)event);
                 break;
             case DhtProtocol.PEER_DISCONNECTED:
                 LOG.info("peer disconnected: " + ((PeerDisconnected)event).getPeer().toString());
                 break;
-            case DhtProtocol.PEER_DETAILS_REQUEST:
-                LOG.info("received PeerDetailsRequest");
-                break;
-            case DhtProtocol.PEER_DETAILS_RESPONSE:
-                LOG.info("received PeerDetailsResponse");
-                break;
+        }
+    }
+
+    private void handlePeerConnected(String peerId, PeerConnected event) {
+        Peer peer = event.getPeer();
+        try {
+            LOG.info("peer connected: " + peer.getPeerId() + " nodeId: " + peer.getNodeIdentity().getNodeId());
+        } catch (InterruptedException e) {
+            LOG.info("timed out waiting for node identity for peer: " + peerId);
         }
     }
 

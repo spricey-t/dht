@@ -5,13 +5,13 @@ import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
+import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.network.event.NodeIdentityRequest;
+import com.virohtus.dht.core.network.event.NodeIdentityResponse;
 import com.virohtus.dht.core.peer.Peer;
-import com.virohtus.dht.core.peer.PeerDetails;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerType;
 import com.virohtus.dht.core.peer.event.PeerConnected;
-import com.virohtus.dht.core.peer.event.PeerDetailsRequest;
-import com.virohtus.dht.core.peer.event.PeerDetailsResponse;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +39,8 @@ public class DhtManager implements EventHandler {
             case DhtProtocol.PEER_CONNECTED:
                 handlePeerConnected((PeerConnected)event);
                 break;
-            case DhtProtocol.PEER_DETAILS_REQUEST:
-                handlePeerDetailsRequest(peerId, (PeerDetailsRequest)event);
+            case DhtProtocol.NODE_IDENTITY_REQUEST:
+                handleNodeIdentityRequest(peerId, (NodeIdentityRequest)event);
                 break;
         }
     }
@@ -52,29 +52,22 @@ public class DhtManager implements EventHandler {
     }
 
     private void handlePeerConnected(PeerConnected peerConnected) {
-        Peer peer = peerConnected.getPeer();
-        try {
-            peer.send(new PeerDetailsRequest());
-        } catch (IOException e) {
-            LOG.error("failed to send PeerDetailsRequest: " + e.getMessage());
-            peer.shutdown();
-        }
     }
 
-    private void handlePeerDetailsRequest(String peerId, PeerDetailsRequest request) {
+    private void handleNodeIdentityRequest(String peerId, NodeIdentityRequest request) {
         try {
             Peer peer = dhtNode.getPeer(peerId);
             try {
-                peer.send(new PeerDetailsResponse(new PeerDetails(
+                peer.send(new NodeIdentityResponse(new NodeIdentity(
                         dhtNode.getNodeId(),
                         dhtNode.getConnectionInfo()
                 )));
             } catch (IOException e) {
-                LOG.error("failed to send PeerDetailsResponse to peer: " + peerId);
+                LOG.error("failed to send NodeIdentityResponse to peer: " + peerId);
                 peer.shutdown();
             }
         } catch (PeerNotFoundException e) {
-            LOG.error("received PeerDetailsRequest for nonexistent peer: " + peerId);
+            LOG.error("received NodeIdentityRequest for nonexistent peer: " + peerId);
         }
     }
 }

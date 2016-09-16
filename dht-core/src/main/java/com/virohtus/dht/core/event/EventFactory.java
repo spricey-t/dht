@@ -1,8 +1,8 @@
 package com.virohtus.dht.core.event;
 
 import com.virohtus.dht.core.DhtProtocol;
-import com.virohtus.dht.core.peer.event.PeerDetailsRequest;
-import com.virohtus.dht.core.peer.event.PeerDetailsResponse;
+import com.virohtus.dht.core.network.event.NodeIdentityRequest;
+import com.virohtus.dht.core.network.event.NodeIdentityResponse;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.util.DhtInputStream;
 import org.slf4j.Logger;
@@ -29,8 +29,8 @@ public class EventFactory {
         int eventType = inputStream.readInt();
         switch (eventType) {
             case DhtProtocol.PEER_DISCONNECTED: return new PeerDisconnected(data);
-            case DhtProtocol.PEER_DETAILS_REQUEST: return new PeerDetailsRequest(data);
-            case DhtProtocol.PEER_DETAILS_RESPONSE: return new PeerDetailsResponse(data);
+            case DhtProtocol.NODE_IDENTITY_REQUEST: return new NodeIdentityRequest(data);
+            case DhtProtocol.NODE_IDENTITY_RESPONSE: return new NodeIdentityResponse(data);
         }
 
         LOG.error("received unsupported event type: " + eventType);

@@ -1,4 +1,4 @@
-package com.virohtus.dht.core.peer;
+package com.virohtus.dht.core.network;
 
 import com.virohtus.dht.core.event.EventSerializable;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
@@ -9,43 +9,54 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class PeerDetails implements EventSerializable {
+public class NodeIdentity implements EventSerializable {
+
     private String nodeId;
     private ConnectionInfo connectionInfo;
 
-    public PeerDetails(String nodeId, ConnectionInfo connectionInfo) {
-        this.nodeId = nodeId;
-        this.connectionInfo = connectionInfo;
-    }
+    public NodeIdentity() {}
 
-    public PeerDetails(byte[] data) throws IOException {
+    public NodeIdentity(byte[] data) throws IOException {
         try (
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-            DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream);
+            DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
         ) {
             nodeId = inputStream.readString();
             connectionInfo = new ConnectionInfo(inputStream.readSizedData());
         }
     }
 
-    @Override
-    public byte[] getBytes() throws IOException {
-        try (
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            DhtOutputStream outputStream = new DhtOutputStream(byteArrayOutputStream);
-        ) {
-            outputStream.writeString(nodeId);
-            outputStream.writeSizedData(connectionInfo.getBytes());
-            outputStream.flush();
-            return byteArrayOutputStream.toByteArray();
-        }
+    public NodeIdentity(String nodeId, ConnectionInfo connectionInfo) {
+        this.nodeId = nodeId;
+        this.connectionInfo = connectionInfo;
     }
 
     public String getNodeId() {
         return nodeId;
     }
 
+    public void setNodeId(String nodeId) {
+        this.nodeId = nodeId;
+    }
+
     public ConnectionInfo getConnectionInfo() {
         return connectionInfo;
+    }
+
+    public void setConnectionInfo(ConnectionInfo connectionInfo) {
+        this.connectionInfo = connectionInfo;
+    }
+
+    @Override
+    public byte[] getBytes() throws IOException {
+        try (
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            DhtOutputStream outputStream = new DhtOutputStream(byteArrayOutputStream)
+        ) {
+            outputStream.writeString(nodeId);
+            outputStream.writeSizedData(connectionInfo.getBytes());
+            outputStream.flush();
+            return byteArrayOutputStream.toByteArray();
+        }
     }
 }

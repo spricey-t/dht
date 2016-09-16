@@ -3,10 +3,11 @@ package com.virohtus.dht.core.peer;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventFactory;
 import com.virohtus.dht.core.event.EventHandler;
+import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.network.event.NodeIdentityRequest;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
-import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.util.IdUtil;
 import com.virohtus.dht.core.util.Resolvable;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class Peer implements ConnectionDelegate {
     private final ExecutorService executorService;
     private final PeerType peerType;
     private final Connection connection;
-    public final Resolvable<PeerDetails> peerDetails = new Resolvable<>();
+    public final Resolvable<NodeIdentity> nodeIdentity = new Resolvable<>(3000); //todo externalize
 
     public Peer(EventHandler handler, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
         this.peerId = new IdUtil().generateId();
@@ -44,12 +45,16 @@ public class Peer implements ConnectionDelegate {
         return peerType;
     }
 
-    public String getPeerNodeId() throws InterruptedException {
-        return peerDetails.get().getNodeId();
-    }
-
-    public ConnectionInfo getConnectionInfo() throws InterruptedException {
-        return peerDetails.get().getConnectionInfo();
+    public NodeIdentity getNodeIdentity() throws InterruptedException {
+        if(!nodeIdentity.valuePresent()) {
+            try {
+                connection.send(new NodeIdentityRequest().getBytes());
+            } catch (IOException e) {
+                LOG.error("failed to send NodeIdentityRequest: " + e.getMessage());
+                connection.close();
+            }
+        }
+        return nodeIdentity.get();
     }
 
     public void send(Event event) throws IOException {

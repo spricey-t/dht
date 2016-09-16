@@ -10,6 +10,7 @@ public interface DhtProtocol {
 
     int PEER_CONNECTED = 4;
     int PEER_DISCONNECTED = 5;
-    int PEER_DETAILS_REQUEST = 6;
-    int PEER_DETAILS_RESPONSE = 7;
+
+    int NODE_IDENTITY_REQUEST = 6;
+    int NODE_IDENTITY_RESPONSE = 7;
 }

@@ -3,11 +3,11 @@ package com.virohtus.dht.core.peer.handler;
 import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventHandler;
+import com.virohtus.dht.core.network.event.NodeIdentityResponse;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
 import com.virohtus.dht.core.peer.event.PeerConnected;
-import com.virohtus.dht.core.peer.event.PeerDetailsResponse;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.server.event.ServerShutdown;
 import org.slf4j.Logger;
@@ -36,8 +36,8 @@ public class PeerPoolHandler implements EventHandler {
             case DhtProtocol.PEER_DISCONNECTED:
                 handlePeerDisconnected((PeerDisconnected)event);
                 break;
-            case DhtProtocol.PEER_DETAILS_RESPONSE:
-                handlePeerDetailsResponse(peerId, (PeerDetailsResponse)event);
+            case DhtProtocol.NODE_IDENTITY_RESPONSE:
+                handleNodeIdentityResponse(peerId, (NodeIdentityResponse)event);
                 break;
         }
     }
@@ -58,7 +58,15 @@ public class PeerPoolHandler implements EventHandler {
     }
 
     private void handlePeerConnected(PeerConnected event) {
-        peerPool.addPeer(event.getPeer());
+        Peer peer = event.getPeer();
+        peerPool.addPeer(peer);
+        // trigger loading node information
+        try {
+            peer.getNodeIdentity();
+        } catch (InterruptedException e) {
+            LOG.warn("timed out waiting for node identity for peer: " + peer.getPeerId());
+            peer.shutdown();
+        }
     }
 
     private void handlePeerDisconnected(PeerDisconnected event) {
@@ -74,12 +82,11 @@ public class PeerPoolHandler implements EventHandler {
         }
     }
 
-    private void handlePeerDetailsResponse(String peerId, PeerDetailsResponse response) {
+    private void handleNodeIdentityResponse(String peerId, NodeIdentityResponse response) {
         try {
-            peerPool.getPeer(peerId).peerDetails.resolve(response.getPeerDetails());
-            LOG.info("received peerdetails: " + response.getPeerDetails().getNodeId());
+            peerPool.getPeer(peerId).nodeIdentity.resolve(response.getNodeIdentity());
         } catch (PeerNotFoundException e) {
-            LOG.warn("received peer details for nonexistent peer: " + peerId);
+            LOG.warn("received node identity for nonexistent peer: " + peerId);
         }
     }
 }
