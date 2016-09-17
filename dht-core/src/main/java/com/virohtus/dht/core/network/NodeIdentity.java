@@ -59,4 +59,28 @@ public class NodeIdentity implements EventSerializable {
             return byteArrayOutputStream.toByteArray();
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("nodeId: %s connectionInfo: %s", nodeId, connectionInfo);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NodeIdentity that = (NodeIdentity) o;
+
+        if (!nodeId.equals(that.nodeId)) return false;
+        return connectionInfo.getPort() == that.connectionInfo.getPort();
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = nodeId.hashCode();
+        result = 31 * result + connectionInfo.getPort();
+        return result;
+    }
 }

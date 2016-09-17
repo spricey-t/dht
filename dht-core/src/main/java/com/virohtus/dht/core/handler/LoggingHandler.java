@@ -29,18 +29,14 @@ public class LoggingHandler implements EventHandler {
                 handlePeerConnected(peerId, (PeerConnected)event);
                 break;
             case DhtProtocol.PEER_DISCONNECTED:
-                LOG.info("peer disconnected: " + ((PeerDisconnected)event).getPeer().toString());
+                LOG.info("peer disconnected: " + ((PeerDisconnected)event).getPeer());
                 break;
         }
     }
 
     private void handlePeerConnected(String peerId, PeerConnected event) {
         Peer peer = event.getPeer();
-        try {
-            LOG.info("peer connected: " + peer.getPeerId() + " nodeId: " + peer.getNodeIdentity().getNodeId());
-        } catch (InterruptedException e) {
-            LOG.info("timed out waiting for node identity for peer: " + peerId);
-        }
+        LOG.info("peer connected: " + peer);
     }
 
 }

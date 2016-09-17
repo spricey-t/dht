@@ -82,6 +82,11 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public String toString() {
-        return String.format("%s", getPeerId());
+        try {
+            return String.format("peerId: %s nodeId: %s", getPeerId(), getNodeIdentity().getNodeId());
+        } catch (InterruptedException e) {
+            LOG.warn("wait for node identity interrupted for peer: " + getPeerId());
+            return String.format("peerId: %s");
+        }
     }
 }

@@ -1,12 +1,14 @@
 package com.virohtus.dht.core.peer;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.virohtus.dht.core.network.NodeIdentity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class PeerPool {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PeerPool.class);
     private final Map<String, Peer> pool = new HashMap<>();
 
     public Peer getPeer(String peerId) throws PeerNotFoundException {
@@ -16,6 +18,22 @@ public class PeerPool {
             }
             throw new PeerNotFoundException(peerId);
         }
+    }
+
+    public Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException {
+        Optional<Peer> potentialPeer = listPeers().stream().filter(p -> {
+            try {
+                return p.getNodeIdentity().equals(nodeIdentity);
+            } catch (InterruptedException e) {
+                LOG.warn("get node identity interrupted for peer: " + p.getPeerId());
+                return false;
+            }
+        }).findFirst();
+
+        if(!potentialPeer.isPresent()) {
+            throw new PeerNotFoundException(nodeIdentity);
+        }
+        return potentialPeer.get();
     }
 
     public void addPeer(Peer peer) {

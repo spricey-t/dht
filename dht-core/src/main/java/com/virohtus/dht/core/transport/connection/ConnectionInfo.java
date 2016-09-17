@@ -41,6 +41,30 @@ public class ConnectionInfo implements EventSerializable {
         }
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s:%d", host, port);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ConnectionInfo that = (ConnectionInfo) o;
+
+        if (port != that.port) return false;
+        return host.equals(that.host);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = host.hashCode();
+        result = 31 * result + port;
+        return result;
+    }
+
     public String getHost() {
         return host;
     }

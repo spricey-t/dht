@@ -13,4 +13,6 @@ public interface DhtProtocol {
 
     int NODE_IDENTITY_REQUEST = 6;
     int NODE_IDENTITY_RESPONSE = 7;
+
+    int SET_PREDECESSOR_REQUEST = 8;
 }

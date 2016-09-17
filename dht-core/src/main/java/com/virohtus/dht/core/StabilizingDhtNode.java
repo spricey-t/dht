@@ -4,10 +4,12 @@ import com.virohtus.dht.core.engine.DhtManager;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.handler.LoggingHandler;
+import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.NodeNetwork;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
+import com.virohtus.dht.core.peer.PeerType;
 import com.virohtus.dht.core.peer.handler.PeerPoolHandler;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.transport.server.Server;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,8 +35,9 @@ public class StabilizingDhtNode implements DhtNode {
 
     private final ExecutorService executorService;
     private final HandlerChain handlerChain;
-    private final DhtManager dhtManager;
     private final PeerPool peerPool;
+    private final NodeNetwork nodeNetwork;
+    private final DhtManager dhtManager;
     private final Server server;
 
     private final String id;
@@ -41,8 +45,9 @@ public class StabilizingDhtNode implements DhtNode {
     public StabilizingDhtNode() {
         executorService = Executors.newCachedThreadPool();
         handlerChain = new HandlerChain();
-        dhtManager = new DhtManager(handlerChain, executorService, this);
         peerPool = new PeerPool();
+        nodeNetwork = new NodeNetwork();
+        dhtManager = new DhtManager(handlerChain, executorService, this);
         server = new TCPServer(handlerChain, executorService);
 
         handlerChain.addHandler(new SocketConnectionHandler(handlerChain, executorService));
@@ -79,6 +84,12 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
+    public Peer openConnection(ConnectionInfo connectionInfo) throws IOException {
+        return new Peer(handlerChain, executorService, PeerType.OUTGOING,
+                new Socket(connectionInfo.getHost(), connectionInfo.getPort()));
+    }
+
+    @Override
     public void leaveNetwork() {
 
     }
@@ -109,8 +120,13 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
+    public NodeIdentity getNodeIdentity() {
+        return new NodeIdentity(getNodeId(), getConnectionInfo());
+    }
+
+    @Override
     public NodeNetwork getNodeNetwork() {
-        return null;
+        return nodeNetwork;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
