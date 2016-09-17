@@ -4,8 +4,10 @@ import com.virohtus.dht.core.engine.DhtManager;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.handler.LoggingHandler;
+import com.virohtus.dht.core.network.GetDhtNetworkFailedException;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.NodeNetwork;
+import com.virohtus.dht.core.network.event.GetDhtNetwork;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
@@ -117,6 +119,11 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
+    public Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException {
+        return peerPool.getPeer(nodeIdentity);
+    }
+
+    @Override
     public ConnectionInfo getConnectionInfo() {
         return server.getConnectionInfo();
     }
@@ -129,6 +136,11 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public NodeNetwork getNodeNetwork() {
         return nodeNetwork;
+    }
+
+    @Override
+    public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException {
+        return dhtManager.getDhtNetwork();
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
