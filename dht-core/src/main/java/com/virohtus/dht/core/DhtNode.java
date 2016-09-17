@@ -10,7 +10,7 @@ import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import java.io.IOException;
 
 public interface DhtNode {
-    void start(int serverPort) throws IOException;
+    void start() throws IOException;
     void shutdown();
     void joinNetwork(ConnectionInfo existingNode) throws IOException;
     Peer openConnection(ConnectionInfo connectionInfo) throws IOException;

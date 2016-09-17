@@ -24,7 +24,7 @@
     <bean id="restExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool">
     </bean>
 
-    <bean id="dhtNode" class="com.virohtus.dht.node.Node" init-method="start">
+    <bean id="dhtNode" class="com.virohtus.dht.core.StabilizingDhtNode" init-method="start" >
         <constructor-arg name="serverPort" value="11081"/>
     </bean>
 

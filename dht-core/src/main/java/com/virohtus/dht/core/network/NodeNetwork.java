@@ -41,4 +41,24 @@ public class NodeNetwork {
             successors.add(nodeIdentity);
         }
     }
+
+    public void removeSuccessor(NodeIdentity nodeIdentity) {
+        synchronized (lock) {
+            successors.remove(nodeIdentity);
+        }
+    }
+
+    public List<NodeIdentity> getSuccessors() {
+        synchronized (lock) {
+            return new ArrayList<>(successors);
+        }
+    }
+
+    public List<NodeIdentity> clearSuccessors() {
+        synchronized (lock) {
+            List<NodeIdentity> cleared = getSuccessors();
+            successors.clear();
+            return cleared;
+        }
+    }
 }

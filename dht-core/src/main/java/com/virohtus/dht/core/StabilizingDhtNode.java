@@ -33,6 +33,7 @@ public class StabilizingDhtNode implements DhtNode {
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNode.class);
     private static final int SHUTDOWN_TIMEOUT = 5;
 
+    private final int serverPort;
     private final ExecutorService executorService;
     private final HandlerChain handlerChain;
     private final PeerPool peerPool;
@@ -42,7 +43,8 @@ public class StabilizingDhtNode implements DhtNode {
 
     private final String id;
 
-    public StabilizingDhtNode() {
+    public StabilizingDhtNode(int serverPort) {
+        this.serverPort = serverPort;
         executorService = Executors.newCachedThreadPool();
         handlerChain = new HandlerChain();
         peerPool = new PeerPool();
@@ -59,7 +61,7 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public void start(int serverPort) throws IOException {
+    public void start() throws IOException {
         server.start(serverPort);
         handlerChain.handle(null, new ServerStart(server.getConnectionInfo().getPort()));
     }
@@ -130,8 +132,8 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        StabilizingDhtNode node = new StabilizingDhtNode();
-        node.start(0);
+        StabilizingDhtNode node = new StabilizingDhtNode(0);
+        node.start();
 
         String cmd = "";
         Scanner keyboard = new Scanner(System.in);

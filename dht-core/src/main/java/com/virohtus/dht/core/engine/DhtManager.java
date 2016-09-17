@@ -14,12 +14,14 @@ import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerType;
 import com.virohtus.dht.core.peer.event.PeerConnected;
+import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 public class DhtManager implements EventHandler {
@@ -40,6 +42,9 @@ public class DhtManager implements EventHandler {
         switch (event.getType()) {
             case DhtProtocol.PEER_CONNECTED:
                 handlePeerConnected((PeerConnected)event);
+                break;
+            case DhtProtocol.PEER_DISCONNECTED:
+                handlePeerDisconnected(peerId, (PeerDisconnected)event);
                 break;
             case DhtProtocol.NODE_IDENTITY_REQUEST:
                 handleNodeIdentityRequest(peerId, (NodeIdentityRequest)event);
@@ -67,6 +72,24 @@ public class DhtManager implements EventHandler {
     }
 
     private void handlePeerConnected(PeerConnected peerConnected) {
+    }
+
+    private void handlePeerDisconnected(String peerId, PeerDisconnected peerDisconnected) {
+        Peer peer = peerDisconnected.getPeer();
+        NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
+        try {
+            NodeIdentity nodeIdentity = peer.getNodeIdentity();
+            if(predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
+                nodeNetwork.setPredecessor(null);
+            }
+            if(nodeNetwork.getSuccessors().contains(nodeIdentity)) {
+                nodeNetwork.removeSuccessor(nodeIdentity);
+                // todo trigger fix fingers
+            }
+        } catch (InterruptedException e) {
+            LOG.warn("wait for node identity interrupted");
+        }
     }
 
     private void handleNodeIdentityRequest(String peerId, NodeIdentityRequest request) {
