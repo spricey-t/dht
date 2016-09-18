@@ -1,9 +1,8 @@
 package com.virohtus.dht.rest.node;
 
-import com.virohtus.dht.connection.ConnectionDetails;
-import com.virohtus.dht.node.Node;
+import com.virohtus.dht.core.DhtNode;
+import com.virohtus.dht.core.network.NodeIdentity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/node")
 public class NodeController {
 
-    @Autowired private Node node;
+    @Autowired private DhtNode node;
 
     @RequestMapping(path = "", method = RequestMethod.GET)
-    public Node getNode() {
-        return node;
+    public NodeIdentity getNode() {
+        return node.getNodeIdentity();
     }
 
 }
