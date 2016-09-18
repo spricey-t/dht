@@ -50,6 +50,10 @@ public class NodeNetwork implements EventSerializable {
         }
     }
 
+    public String getNodeId() {
+        return nodeId;
+    }
+
     public boolean isEmpty() {
         synchronized (lock) {
             return !hasSuccessors() && !hasPredecessor();

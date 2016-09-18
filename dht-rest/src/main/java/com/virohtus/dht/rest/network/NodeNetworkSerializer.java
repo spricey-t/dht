@@ -14,6 +14,7 @@ public class NodeNetworkSerializer extends JsonSerializer<NodeNetwork> {
     public void serialize(NodeNetwork nodeNetwork, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         jsonGenerator.writeStartObject();
 
+        jsonGenerator.writeStringField("nodeId", nodeNetwork.getNodeId());
         jsonGenerator.writeObjectField("predecessor", nodeNetwork.getPredecessor().isPresent() ? nodeNetwork.getPredecessor().get() : null);
         jsonGenerator.writeObjectField("successors", nodeNetwork.getSuccessors());
 
