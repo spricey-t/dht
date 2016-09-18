@@ -1,6 +1,7 @@
 package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.DhtManager;
+import com.virohtus.dht.core.engine.DhtStabilizer;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.handler.LoggingHandler;
@@ -12,6 +13,7 @@ import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
 import com.virohtus.dht.core.peer.PeerType;
+import com.virohtus.dht.core.peer.event.PeerConnected;
 import com.virohtus.dht.core.peer.handler.PeerPoolHandler;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.transport.server.Server;
@@ -41,6 +43,7 @@ public class StabilizingDhtNode implements DhtNode {
     private final PeerPool peerPool;
     private final NodeNetwork nodeNetwork;
     private final DhtManager dhtManager;
+    private final DhtStabilizer dhtStabilizer;
     private final Server server;
 
     private final String id;
@@ -53,11 +56,13 @@ public class StabilizingDhtNode implements DhtNode {
         peerPool = new PeerPool();
         nodeNetwork = new NodeNetwork(getNodeId());
         dhtManager = new DhtManager(handlerChain, executorService, this);
+        dhtStabilizer = new DhtStabilizer(this, executorService);
         server = new TCPServer(handlerChain, executorService);
 
         handlerChain.addHandler(new SocketConnectionHandler(handlerChain, executorService));
         handlerChain.addHandler(new PeerPoolHandler(peerPool));
         handlerChain.addHandler(dhtManager);
+        handlerChain.addHandler(dhtStabilizer);
         handlerChain.addHandler(new LoggingHandler());
     }
 
@@ -65,6 +70,7 @@ public class StabilizingDhtNode implements DhtNode {
     public void start() throws IOException {
         server.start(serverPort);
         handlerChain.handle(null, new ServerStart(server.getConnectionInfo().getPort()));
+        dhtStabilizer.start();
     }
 
     @Override
@@ -72,6 +78,7 @@ public class StabilizingDhtNode implements DhtNode {
         server.shutdown();
 
         handlerChain.handle(null, new ServerShutdown());
+        dhtStabilizer.shutdown();
 
         executorService.shutdown();
         try {
@@ -88,8 +95,10 @@ public class StabilizingDhtNode implements DhtNode {
 
     @Override
     public Peer openConnection(ConnectionInfo connectionInfo) throws IOException {
-        return new Peer(handlerChain, executorService, PeerType.OUTGOING,
+        Peer peer = new Peer(handlerChain, executorService, PeerType.OUTGOING,
                 new Socket(connectionInfo.getHost(), connectionInfo.getPort()));
+        handlerChain.handle(peer.getPeerId(), new PeerConnected(peer));
+        return peer;
     }
 
     @Override

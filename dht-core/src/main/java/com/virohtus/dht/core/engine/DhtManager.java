@@ -8,10 +8,7 @@ import com.virohtus.dht.core.handler.HandlerChain;
 import com.virohtus.dht.core.network.GetDhtNetworkFailedException;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.NodeNetwork;
-import com.virohtus.dht.core.network.event.GetDhtNetwork;
-import com.virohtus.dht.core.network.event.NodeIdentityRequest;
-import com.virohtus.dht.core.network.event.NodeIdentityResponse;
-import com.virohtus.dht.core.network.event.SetPredecessorRequest;
+import com.virohtus.dht.core.network.event.*;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerType;
@@ -59,6 +56,9 @@ public class DhtManager implements EventHandler {
             case DhtProtocol.GET_DHT_NETWORK:
                 handleGetDhtNetwork(peerId, (GetDhtNetwork)event);
                 break;
+            case DhtProtocol.GET_PREDECESSOR_REQUEST:
+                handleGetPredecessorRequest(peerId, (GetPredecessorRequest)event);
+                break;
             case DhtProtocol.SET_PREDECESSOR_REQUEST:
                 handleSetPredecessorRequest(peerId, (SetPredecessorRequest)event);
                 break;
@@ -67,7 +67,6 @@ public class DhtManager implements EventHandler {
 
     public void join(ConnectionInfo connectionInfo) throws IOException {
         Peer peer = dhtNode.openConnection(connectionInfo);
-        handlerChain.handle(peer.getPeerId(), new PeerConnected(peer));
 
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
         if(nodeNetwork.isEmpty()) {
@@ -108,19 +107,21 @@ public class DhtManager implements EventHandler {
 
     private void handlePeerDisconnected(String peerId, PeerDisconnected peerDisconnected) {
         Peer peer = peerDisconnected.getPeer();
-        NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
-        Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
-        try {
-            NodeIdentity nodeIdentity = peer.getNodeIdentity();
-            if(predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
-                nodeNetwork.setPredecessor(null);
+        if(peer.getPeerType().equals(PeerType.OUTGOING)) {
+            NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+            Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
+            try {
+                NodeIdentity nodeIdentity = peer.getNodeIdentity();
+                if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
+                    nodeNetwork.setPredecessor(null);
+                }
+                if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
+                    nodeNetwork.removeSuccessor(nodeIdentity);
+                    // todo trigger fix fingers
+                }
+            } catch (InterruptedException e) {
+                LOG.warn("wait for node identity interrupted");
             }
-            if(nodeNetwork.getSuccessors().contains(nodeIdentity)) {
-                nodeNetwork.removeSuccessor(nodeIdentity);
-                // todo trigger fix fingers
-            }
-        } catch (InterruptedException e) {
-            LOG.warn("wait for node identity interrupted");
         }
     }
 
@@ -170,13 +171,24 @@ public class DhtManager implements EventHandler {
         }
     }
 
+    private void handleGetPredecessorRequest(String peerId, GetPredecessorRequest request) {
+        NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        try {
+            Peer peer = dhtNode.getPeer(peerId);
+            peer.send(new GetPredecessorResponse(nodeNetwork.getPredecessor().get()));
+        } catch (PeerNotFoundException e) {
+            LOG.error("could not find peer: " + peerId);
+        } catch (IOException e) {
+            LOG.error("failed to send GetPredecessorResponse to peer: " + peerId);
+        }
+    }
+
     private void handleSetPredecessorRequest(String peerId, SetPredecessorRequest request) {
         NodeIdentity nodeIdentity = request.getNodeIdentity();
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
         try {
             if(nodeNetwork.isEmpty()) {
                 Peer peer = dhtNode.openConnection(nodeIdentity.getConnectionInfo());
-                handlerChain.handle(peer.getPeerId(), new PeerConnected(peer));
                 peer.send(new SetPredecessorRequest(dhtNode.getNodeIdentity()));
                 nodeNetwork.addSuccessor(nodeIdentity);
             }

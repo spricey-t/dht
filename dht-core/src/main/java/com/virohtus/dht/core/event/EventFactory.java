@@ -1,10 +1,7 @@
 package com.virohtus.dht.core.event;
 
 import com.virohtus.dht.core.DhtProtocol;
-import com.virohtus.dht.core.network.event.GetDhtNetwork;
-import com.virohtus.dht.core.network.event.NodeIdentityRequest;
-import com.virohtus.dht.core.network.event.NodeIdentityResponse;
-import com.virohtus.dht.core.network.event.SetPredecessorRequest;
+import com.virohtus.dht.core.network.event.*;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.util.DhtInputStream;
 import org.slf4j.Logger;
@@ -34,6 +31,8 @@ public class EventFactory {
             case DhtProtocol.NODE_IDENTITY_REQUEST: return new NodeIdentityRequest(data);
             case DhtProtocol.NODE_IDENTITY_RESPONSE: return new NodeIdentityResponse(data);
             case DhtProtocol.SET_PREDECESSOR_REQUEST: return new SetPredecessorRequest(data);
+            case DhtProtocol.GET_PREDECESSOR_REQUEST: return new GetPredecessorRequest(data);
+            case DhtProtocol.GET_PREDECESSOR_RESPONSE: return new GetPredecessorResponse(data);
             case DhtProtocol.GET_DHT_NETWORK: return new GetDhtNetwork(data);
         }
 
