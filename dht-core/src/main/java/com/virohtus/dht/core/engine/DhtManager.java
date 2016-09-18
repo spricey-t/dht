@@ -81,7 +81,7 @@ public class DhtManager implements EventHandler {
         peer.send(new SetPredecessorRequest(dhtNode.getNodeIdentity()));
     }
 
-    public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException {
+    public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException, InterruptedException {
         this.getDhtNetwork.clear();
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
         GetDhtNetwork net = new GetDhtNetwork();
@@ -93,8 +93,11 @@ public class DhtManager implements EventHandler {
         try {
             Peer peer = dhtNode.getPeer(successor);
             peer.send(net);
-            return this.getDhtNetwork();
-        } catch (Exception e) {
+            return this.getDhtNetwork.get();
+        } catch (PeerNotFoundException e) {
+            LOG.error("could not find peer with nodeIdentity: " + successor);
+            throw new GetDhtNetworkFailedException(e);
+        } catch (IOException e) {
             LOG.error("failed to send GetDhtNetwork to peer with nodeIdentity: " + successor + " cause: " + e.getMessage());
             throw new GetDhtNetworkFailedException(e);
         }

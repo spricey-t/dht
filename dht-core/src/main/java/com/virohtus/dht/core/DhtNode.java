@@ -25,5 +25,5 @@ public interface DhtNode {
     ConnectionInfo getConnectionInfo();
     NodeIdentity getNodeIdentity();
     NodeNetwork getNodeNetwork();
-    GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException;
+    GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException, InterruptedException;
 }

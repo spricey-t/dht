@@ -46,11 +46,12 @@ public class StabilizingDhtNode implements DhtNode {
     private final String id;
 
     public StabilizingDhtNode(int serverPort) {
+        id = new IdUtil().generateId();
         this.serverPort = serverPort;
         executorService = Executors.newCachedThreadPool();
         handlerChain = new HandlerChain();
         peerPool = new PeerPool();
-        nodeNetwork = new NodeNetwork();
+        nodeNetwork = new NodeNetwork(getNodeId());
         dhtManager = new DhtManager(handlerChain, executorService, this);
         server = new TCPServer(handlerChain, executorService);
 
@@ -58,8 +59,6 @@ public class StabilizingDhtNode implements DhtNode {
         handlerChain.addHandler(new PeerPoolHandler(peerPool));
         handlerChain.addHandler(dhtManager);
         handlerChain.addHandler(new LoggingHandler());
-
-        id = new IdUtil().generateId();
     }
 
     @Override
@@ -139,7 +138,7 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException {
+    public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException, InterruptedException {
         return dhtManager.getDhtNetwork();
     }
 

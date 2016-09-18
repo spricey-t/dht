@@ -39,6 +39,7 @@ public class GetDhtNetwork extends Event {
     @Override
     public void deserialize(DhtInputStream dhtInputStream) throws IOException {
         super.deserialize(dhtInputStream);
+        nodeNets = new ArrayList<>();
         int nodeNetSize = dhtInputStream.readInt();
         for(int i = 0; i < nodeNetSize; i++) {
             nodeNets.add(new NodeNetwork(dhtInputStream.readSizedData()));

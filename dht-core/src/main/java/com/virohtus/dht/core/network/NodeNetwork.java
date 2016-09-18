@@ -16,11 +16,17 @@ import java.util.Optional;
 public class NodeNetwork implements EventSerializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NodeNetwork.class);
+    private String nodeId;
     private NodeIdentity predecessor;
     private final List<NodeIdentity> successors;
     private final Object lock;
 
-    public NodeNetwork() {
+    public NodeNetwork(String nodeId) {
+        this();
+        this.nodeId = nodeId;
+    }
+
+    private NodeNetwork() {
         predecessor = null;
         successors = new ArrayList<>();
         lock = new Object();
@@ -32,6 +38,7 @@ public class NodeNetwork implements EventSerializable {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
         ) {
+            nodeId = inputStream.readString();
             boolean hasPredecessor = inputStream.readBoolean();
             if(hasPredecessor) {
                 predecessor = new NodeIdentity(inputStream.readSizedData());
@@ -103,6 +110,7 @@ public class NodeNetwork implements EventSerializable {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DhtOutputStream outputStream = new DhtOutputStream(byteArrayOutputStream)
         ) {
+            outputStream.writeString(nodeId);
             outputStream.writeBoolean(predecessor != null);
             if (predecessor != null) {
                 outputStream.writeSizedData(predecessor.getBytes());
@@ -114,5 +122,25 @@ public class NodeNetwork implements EventSerializable {
             outputStream.flush();
             return byteArrayOutputStream.toByteArray();
         }
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NodeNetwork that = (NodeNetwork) o;
+
+        if (predecessor != null ? !predecessor.equals(that.predecessor) : that.predecessor != null) return false;
+        return successors != null ? successors.equals(that.successors) : that.successors == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = predecessor != null ? predecessor.hashCode() : 0;
+        result = 31 * result + (successors != null ? successors.hashCode() : 0);
+        return result;
     }
 }
