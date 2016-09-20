@@ -107,21 +107,19 @@ public class DhtManager implements EventHandler {
 
     private void handlePeerDisconnected(String peerId, PeerDisconnected peerDisconnected) {
         Peer peer = peerDisconnected.getPeer();
-        if(peer.getPeerType().equals(PeerType.OUTGOING)) {
-            NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
-            Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
-            try {
-                NodeIdentity nodeIdentity = peer.getNodeIdentity();
-                if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
-                    nodeNetwork.setPredecessor(null);
-                }
-                if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
-                    nodeNetwork.removeSuccessor(nodeIdentity);
-                    // todo trigger fix fingers
-                }
-            } catch (InterruptedException e) {
-                LOG.warn("wait for node identity interrupted");
+        NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
+        try {
+            NodeIdentity nodeIdentity = peer.getNodeIdentity();
+            if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
+                nodeNetwork.setPredecessor(null);
             }
+            if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
+                nodeNetwork.removeSuccessor(nodeIdentity);
+                // todo trigger fix fingers
+            }
+        } catch (InterruptedException e) {
+            LOG.warn("wait for node identity interrupted");
         }
     }
 
