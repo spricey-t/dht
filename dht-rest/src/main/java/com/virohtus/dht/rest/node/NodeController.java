@@ -14,8 +14,8 @@ public class NodeController {
     @Autowired private DhtNode node;
 
     @RequestMapping(path = "", method = RequestMethod.GET)
-    public NodeIdentity getNode() {
-        return node.getNodeIdentity();
+    public DhtNode getNode() {
+        return node;
     }
 
 }

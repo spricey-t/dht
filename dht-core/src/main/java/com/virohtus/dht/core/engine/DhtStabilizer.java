@@ -71,6 +71,7 @@ public class DhtStabilizer implements EventHandler {
         }
         NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
         try {
+            successorsPredecessor.clear();
             Peer successorPeer = dhtNode.getPeer(successor);
             successorPeer.send(new GetPredecessorRequest());
             NodeIdentity potentialNewSuccessor = successorsPredecessor.get();

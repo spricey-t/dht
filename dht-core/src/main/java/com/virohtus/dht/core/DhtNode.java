@@ -10,6 +10,7 @@ import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 
 import java.io.IOException;
+import java.util.Set;
 
 public interface DhtNode {
     void start() throws IOException;
@@ -22,6 +23,7 @@ public interface DhtNode {
     String getNodeId();
     Peer getPeer(String peerId) throws PeerNotFoundException;
     Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException;
+    Set<Peer> listPeers();
     ConnectionInfo getConnectionInfo();
     NodeIdentity getNodeIdentity();
     NodeNetwork getNodeNetwork();
