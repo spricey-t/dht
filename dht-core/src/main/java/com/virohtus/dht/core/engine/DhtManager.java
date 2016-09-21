@@ -111,12 +111,18 @@ public class DhtManager implements EventHandler {
         Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
         try {
             NodeIdentity nodeIdentity = peer.getNodeIdentity();
-            if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
-                nodeNetwork.setPredecessor(null);
-            }
-            if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
-                nodeNetwork.removeSuccessor(nodeIdentity);
-                // todo trigger fix fingers
+            switch(peer.getPeerType()) {
+                case INCOMING:
+                    if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
+                        nodeNetwork.setPredecessor(null);
+                    }
+                    break;
+                case OUTGOING:
+                    if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
+                        nodeNetwork.removeSuccessor(nodeIdentity);
+                        // todo trigger fix fingers
+                    }
+                    break;
             }
         } catch (InterruptedException e) {
             LOG.warn("wait for node identity interrupted");
