@@ -72,7 +72,7 @@ public class DhtStabilizer implements EventHandler {
         NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
         try {
             successorsPredecessor.clear();
-            Peer successorPeer = dhtNode.getPeer(successor);
+            Peer successorPeer = dhtNode.getPeer(successor, PeerType.OUTGOING);
             successorPeer.send(new GetPredecessorRequest());
             NodeIdentity potentialNewSuccessor = successorsPredecessor.get();
             if(dhtNode.getNodeIdentity().equals(potentialNewSuccessor)) {
@@ -85,10 +85,8 @@ public class DhtStabilizer implements EventHandler {
             List<NodeIdentity> oldSuccessors = nodeNetwork.clearSuccessors();
             for(NodeIdentity oldSuccessor : oldSuccessors) {
                 try {
-                    Peer oldPeer = dhtNode.getPeer(oldSuccessor);
-                    if(oldPeer.getPeerType().equals(PeerType.OUTGOING)) {
-                        oldPeer.shutdown();
-                    }
+                    Peer oldPeer = dhtNode.getPeer(oldSuccessor, PeerType.OUTGOING);
+                    oldPeer.shutdown();
                 } catch(PeerNotFoundException e) {
                     LOG.warn("tried to shutdown nonexistent peer with nodeIdentity: " + oldSuccessor);
                 }

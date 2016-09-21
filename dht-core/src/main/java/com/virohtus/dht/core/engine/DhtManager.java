@@ -90,7 +90,7 @@ public class DhtManager implements EventHandler {
         }
         NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
         try {
-            Peer peer = dhtNode.getPeer(successor);
+            Peer peer = dhtNode.getPeer(successor, PeerType.OUTGOING);
             peer.send(net);
             return this.getDhtNetwork.get();
         } catch (PeerNotFoundException e) {
@@ -160,7 +160,7 @@ public class DhtManager implements EventHandler {
         }
         NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
         try {
-            Peer peer = dhtNode.getPeer(successor);
+            Peer peer = dhtNode.getPeer(successor, PeerType.OUTGOING);
             peer.send(getDhtNetwork);
         } catch (PeerNotFoundException e) {
             LOG.error("tried to send GetDhtNetwork to nonexistent peer with nodeIdentity: " + nodeNetwork);

@@ -20,10 +20,10 @@ public class PeerPool {
         }
     }
 
-    public Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException {
+    public Peer getPeer(NodeIdentity nodeIdentity, PeerType peerType) throws PeerNotFoundException {
         Optional<Peer> potentialPeer = listPeers().stream().filter(p -> {
             try {
-                return p.getNodeIdentity().equals(nodeIdentity);
+                return p.getNodeIdentity().equals(nodeIdentity) && p.getPeerType().equals(peerType);
             } catch (InterruptedException e) {
                 LOG.warn("get node identity interrupted for peer: " + p.getPeerId());
                 return false;

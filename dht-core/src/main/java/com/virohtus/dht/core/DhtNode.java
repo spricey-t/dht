@@ -7,6 +7,7 @@ import com.virohtus.dht.core.network.NodeNetwork;
 import com.virohtus.dht.core.network.event.GetDhtNetwork;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
+import com.virohtus.dht.core.peer.PeerType;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public interface DhtNode {
     void unregisterEventHandler(EventHandler handler);
     String getNodeId();
     Peer getPeer(String peerId) throws PeerNotFoundException;
-    Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException;
+    Peer getPeer(NodeIdentity nodeIdentity, PeerType peerType) throws PeerNotFoundException;
     Set<Peer> listPeers();
     ConnectionInfo getConnectionInfo();
     NodeIdentity getNodeIdentity();

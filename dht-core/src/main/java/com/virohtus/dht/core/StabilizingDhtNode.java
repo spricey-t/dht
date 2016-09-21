@@ -128,8 +128,8 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException {
-        return peerPool.getPeer(nodeIdentity);
+    public Peer getPeer(NodeIdentity nodeIdentity, PeerType peerType) throws PeerNotFoundException {
+        return peerPool.getPeer(nodeIdentity, peerType);
     }
 
     @Override
