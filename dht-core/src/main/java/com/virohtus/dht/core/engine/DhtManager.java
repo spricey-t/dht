@@ -134,13 +134,13 @@ public class DhtManager implements EventHandler {
                             try {
                                 Peer successorPeer = dhtNode.getPeer(successor, PeerType.OUTGOING);
                                 successorPeer.send(new PredecessorDied(dhtNode.getNodeIdentity()));
-                            } catch (Exception e) {
-                                LOG.error("the world is in trouble! i am the sole survivor! committing suicide...");
-                                System.exit(1);
+                            } catch (PeerNotFoundException e) {
+                                if(dhtNode.isAlive()) {
+                                    LOG.info("could not find peer with nodeIdentity: " + successor);
+                                }
+                            } catch (IOException e) {
+                                LOG.info("could not send PredecessorDied to peer with nodeIdentity: " + successor);
                             }
-                        } else {
-                            LOG.error("predecessor died and i am alone. committing suicide...");
-                            System.exit(1);
                         }
                     }
                     break;

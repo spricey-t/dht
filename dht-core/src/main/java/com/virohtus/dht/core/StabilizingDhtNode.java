@@ -90,6 +90,11 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
+    public boolean isAlive() {
+        return server != null && server.isAlive();
+    }
+
+    @Override
     public void joinNetwork(ConnectionInfo existingNode) throws IOException {
         dhtManager.join(existingNode);
     }
