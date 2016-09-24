@@ -62,6 +62,9 @@ public class DhtManager implements EventHandler {
             case DhtProtocol.SET_PREDECESSOR_REQUEST:
                 handleSetPredecessorRequest(peerId, (SetPredecessorRequest)event);
                 break;
+            case DhtProtocol.PREDECESSOR_DIED:
+                handlePredecessorDied(peerId, (PredecessorDied)event);
+                break;
         }
     }
 
@@ -69,13 +72,21 @@ public class DhtManager implements EventHandler {
         Peer peer = dhtNode.openConnection(connectionInfo);
 
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
-        if(nodeNetwork.isEmpty()) {
-            try {
-                nodeNetwork.addSuccessor(peer.getNodeIdentity());
-            } catch (InterruptedException e) {
-                LOG.error("wait for node identity interrupted when joining network");
-                throw new IOException("could not join network because connection timed out" ,e);
-            }
+        try {
+            // cleanup in case we try to rejoin the network
+            nodeNetwork.clearSuccessors().forEach(successor -> {
+                Peer successorPeer = null;
+                try {
+                    successorPeer = dhtNode.getPeer(successor, PeerType.OUTGOING);
+                    successorPeer.shutdown();
+                } catch (PeerNotFoundException e) {
+                    LOG.warn("could not find successor peer with nodeIdentity: " + successor);
+                }
+            });
+            nodeNetwork.addSuccessor(peer.getNodeIdentity());
+        } catch (InterruptedException e) {
+            LOG.error("wait for node identity interrupted when joining network");
+            throw new IOException("could not join network because connection timed out" ,e);
         }
         peer.send(new SetPredecessorRequest(dhtNode.getNodeIdentity()));
     }
@@ -90,7 +101,7 @@ public class DhtManager implements EventHandler {
         }
         NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
         try {
-            Peer peer = dhtNode.getPeer(successor);
+            Peer peer = dhtNode.getPeer(successor, PeerType.OUTGOING);
             peer.send(net);
             return this.getDhtNetwork.get();
         } catch (PeerNotFoundException e) {
@@ -107,21 +118,41 @@ public class DhtManager implements EventHandler {
 
     private void handlePeerDisconnected(String peerId, PeerDisconnected peerDisconnected) {
         Peer peer = peerDisconnected.getPeer();
-        if(peer.getPeerType().equals(PeerType.OUTGOING)) {
-            NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
-            Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
-            try {
-                NodeIdentity nodeIdentity = peer.getNodeIdentity();
-                if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
-                    nodeNetwork.setPredecessor(null);
-                }
-                if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
-                    nodeNetwork.removeSuccessor(nodeIdentity);
-                    // todo trigger fix fingers
-                }
-            } catch (InterruptedException e) {
-                LOG.warn("wait for node identity interrupted");
+        NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        Optional<NodeIdentity> predecessor = nodeNetwork.getPredecessor();
+        try {
+            NodeIdentity nodeIdentity = peer.getNodeIdentity();
+            switch(peer.getPeerType()) {
+                case INCOMING:
+                    if (predecessor.isPresent() && predecessor.get().equals(nodeIdentity)) {
+                        nodeNetwork.setPredecessor(null);
+
+                        // notify successor that ring is broken
+                        // todo mark this node as unstable
+                        if(nodeNetwork.hasSuccessors()) {
+                            NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
+                            try {
+                                Peer successorPeer = dhtNode.getPeer(successor, PeerType.OUTGOING);
+                                successorPeer.send(new PredecessorDied(dhtNode.getNodeIdentity()));
+                            } catch (PeerNotFoundException e) {
+                                if(dhtNode.isAlive()) {
+                                    LOG.info("could not find peer with nodeIdentity: " + successor);
+                                }
+                            } catch (IOException e) {
+                                LOG.info("could not send PredecessorDied to peer with nodeIdentity: " + successor);
+                            }
+                        }
+                    }
+                    break;
+                case OUTGOING:
+                    if (nodeNetwork.getSuccessors().contains(nodeIdentity)) {
+                        nodeNetwork.removeSuccessor(nodeIdentity);
+                        // todo trigger fix fingers
+                    }
+                    break;
             }
+        } catch (InterruptedException e) {
+            LOG.warn("wait for node identity interrupted");
         }
     }
 
@@ -162,7 +193,7 @@ public class DhtManager implements EventHandler {
         }
         NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
         try {
-            Peer peer = dhtNode.getPeer(successor);
+            Peer peer = dhtNode.getPeer(successor, PeerType.OUTGOING);
             peer.send(getDhtNetwork);
         } catch (PeerNotFoundException e) {
             LOG.error("tried to send GetDhtNetwork to nonexistent peer with nodeIdentity: " + nodeNetwork);
@@ -199,6 +230,27 @@ public class DhtManager implements EventHandler {
                 dhtNode.getPeer(peerId).shutdown();
             } catch (PeerNotFoundException e1) {
                 LOG.error("dafuq? " + e1.getMessage());
+            }
+        }
+    }
+
+    private void handlePredecessorDied(String peerId, PredecessorDied event) {
+        NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        if(!nodeNetwork.hasSuccessors()) {
+            // open new connection to the other end
+            try {
+                dhtNode.joinNetwork(event.getInitiator().getConnectionInfo());
+            } catch (IOException e) {
+                LOG.warn("received a request to rebuild ring but the initiator seems to have died too... waiting for another request");
+            }
+        } else {
+            // forward it on
+            NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
+            try {
+                Peer successorPeer = dhtNode.getPeer(successor, PeerType.OUTGOING);
+                successorPeer.send(event);
+            } catch (Exception e) {
+                LOG.error("could not forward ProcecssorDied event. this network sucks. reason: " + e.getMessage());
             }
         }
     }

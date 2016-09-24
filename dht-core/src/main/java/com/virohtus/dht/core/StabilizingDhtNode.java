@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +90,11 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
+    public boolean isAlive() {
+        return server != null && server.isAlive();
+    }
+
+    @Override
     public void joinNetwork(ConnectionInfo existingNode) throws IOException {
         dhtManager.join(existingNode);
     }
@@ -127,8 +133,13 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException {
-        return peerPool.getPeer(nodeIdentity);
+    public Peer getPeer(NodeIdentity nodeIdentity, PeerType peerType) throws PeerNotFoundException {
+        return peerPool.getPeer(nodeIdentity, peerType);
+    }
+
+    @Override
+    public Set<Peer> listPeers() {
+        return peerPool.listPeers();
     }
 
     @Override
