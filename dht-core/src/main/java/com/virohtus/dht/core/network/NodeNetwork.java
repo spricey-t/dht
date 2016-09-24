@@ -16,14 +16,14 @@ import java.util.Optional;
 public class NodeNetwork implements EventSerializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NodeNetwork.class);
-    private String nodeId;
+    private NodeIdentity currentNode;
     private NodeIdentity predecessor;
     private final List<NodeIdentity> successors;
     private final Object lock;
 
-    public NodeNetwork(String nodeId) {
+    public NodeNetwork(NodeIdentity currentNode) {
         this();
-        this.nodeId = nodeId;
+        this.currentNode = currentNode;
     }
 
     private NodeNetwork() {
@@ -38,7 +38,7 @@ public class NodeNetwork implements EventSerializable {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
         ) {
-            nodeId = inputStream.readString();
+            currentNode = new NodeIdentity(inputStream.readSizedData());
             boolean hasPredecessor = inputStream.readBoolean();
             if(hasPredecessor) {
                 predecessor = new NodeIdentity(inputStream.readSizedData());
@@ -50,8 +50,12 @@ public class NodeNetwork implements EventSerializable {
         }
     }
 
-    public String getNodeId() {
-        return nodeId;
+    public NodeIdentity getCurrentNode() {
+        return currentNode;
+    }
+
+    public void setCurrentNode(NodeIdentity currentNode) {
+        this.currentNode = currentNode;
     }
 
     public boolean isEmpty() {
@@ -114,7 +118,7 @@ public class NodeNetwork implements EventSerializable {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DhtOutputStream outputStream = new DhtOutputStream(byteArrayOutputStream)
         ) {
-            outputStream.writeString(nodeId);
+            outputStream.writeSizedData(currentNode.getBytes());
             outputStream.writeBoolean(predecessor != null);
             if (predecessor != null) {
                 outputStream.writeSizedData(predecessor.getBytes());
@@ -136,15 +140,17 @@ public class NodeNetwork implements EventSerializable {
 
         NodeNetwork that = (NodeNetwork) o;
 
+        if (!currentNode.equals(that.currentNode)) return false;
         if (predecessor != null ? !predecessor.equals(that.predecessor) : that.predecessor != null) return false;
-        return successors != null ? successors.equals(that.successors) : that.successors == null;
+        return successors.equals(that.successors);
 
     }
 
     @Override
     public int hashCode() {
-        int result = predecessor != null ? predecessor.hashCode() : 0;
-        result = 31 * result + (successors != null ? successors.hashCode() : 0);
+        int result = currentNode.hashCode();
+        result = 31 * result + (predecessor != null ? predecessor.hashCode() : 0);
+        result = 31 * result + successors.hashCode();
         return result;
     }
 }

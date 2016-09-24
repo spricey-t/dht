@@ -42,10 +42,10 @@ public class StabilizingDhtNode implements DhtNode {
     private final ExecutorService executorService;
     private final HandlerChain handlerChain;
     private final PeerPool peerPool;
-    private final NodeNetwork nodeNetwork;
     private final DhtManager dhtManager;
     private final DhtStabilizer dhtStabilizer;
     private final Server server;
+    private final NodeNetwork nodeNetwork;
 
     private final String id;
 
@@ -55,10 +55,10 @@ public class StabilizingDhtNode implements DhtNode {
         executorService = Executors.newCachedThreadPool();
         handlerChain = new HandlerChain();
         peerPool = new PeerPool();
-        nodeNetwork = new NodeNetwork(getNodeId());
         dhtManager = new DhtManager(handlerChain, executorService, this);
         dhtStabilizer = new DhtStabilizer(this, executorService);
         server = new TCPServer(handlerChain, executorService);
+        nodeNetwork = new NodeNetwork(getNodeIdentity());
 
         handlerChain.addHandler(new SocketConnectionHandler(handlerChain, executorService));
         handlerChain.addHandler(new PeerPoolHandler(peerPool));
@@ -70,6 +70,7 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public void start() throws IOException {
         server.start(serverPort);
+        nodeNetwork.setCurrentNode(getNodeIdentity()); // server now has connection info
         handlerChain.handle(null, new ServerStart(server.getConnectionInfo().getPort()));
         dhtStabilizer.start();
     }

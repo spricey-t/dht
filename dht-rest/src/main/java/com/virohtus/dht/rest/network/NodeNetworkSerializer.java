@@ -20,7 +20,7 @@ public class NodeNetworkSerializer extends JsonSerializer<NodeNetwork> {
         jsonGenerator.writeObjectField("predecessor", nodeNetwork.getPredecessor().isPresent() ? nodeNetwork.getPredecessor().get() : null);
         jsonGenerator.writeObjectField("successors", nodeNetwork.getSuccessors());
         */
-        jsonGenerator.writeStringField("nodeId", nodeNetwork.getNodeId());
+        jsonGenerator.writeObjectField("nodeId", nodeNetwork.getCurrentNode());
         jsonGenerator.writeStringField("predecessor", nodeNetwork.getPredecessor().isPresent() ? nodeNetwork.getPredecessor().get().getNodeId() : null);
         jsonGenerator.writeArrayFieldStart("successors");
 
