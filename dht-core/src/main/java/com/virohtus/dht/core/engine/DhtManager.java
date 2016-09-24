@@ -129,6 +129,9 @@ public class DhtManager implements EventHandler {
 
                         // notify successor that ring is broken
                         // todo mark this node as unstable
+                        // todo this needs to change. what happens when there are multiple successors?
+                        // this could potentially spin forever
+                        // would it be better to let the successor auto-balance?
                         if(nodeNetwork.hasSuccessors()) {
                             NodeIdentity successor = nodeNetwork.getSuccessors().get(0);
                             try {
