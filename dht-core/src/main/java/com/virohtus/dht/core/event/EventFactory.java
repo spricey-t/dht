@@ -35,6 +35,8 @@ public class EventFactory {
             case DhtProtocol.GET_PREDECESSOR_RESPONSE: return new GetPredecessorResponse(data);
             case DhtProtocol.GET_DHT_NETWORK: return new GetDhtNetwork(data);
             case DhtProtocol.PREDECESSOR_DIED: return new PredecessorDied(data);
+            case DhtProtocol.GET_NODE_NETWORK_REQUEST: return new GetNodeNetworkRequest(data);
+            case DhtProtocol.GET_NODE_NETWORK_RESPONSE: return new GetNodeNetworkResponse(data);
         }
 
         LOG.error("received unsupported event type: " + eventType);

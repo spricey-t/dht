@@ -21,4 +21,6 @@ public interface DhtProtocol {
     int GET_PREDECESSOR_RESPONSE = 10;
     int SET_PREDECESSOR_REQUEST = 11;
     int PREDECESSOR_DIED = 12;
+    int GET_NODE_NETWORK_REQUEST = 13;
+    int GET_NODE_NETWORK_RESPONSE = 14;
 }
