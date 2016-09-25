@@ -92,7 +92,7 @@ public class DhtStabilizer implements EventHandler {
             }
             if(dhtNode.getNodeIdentity().equals(successorsPredecessor.get())) {
                 List<NodeIdentity> successorsSuccessors = successorsNodeNetwork.get().getSuccessors();
-                if(successorsSuccessors.size() == 0) {
+                if(successorsSuccessors.isEmpty()) {
                     LOG.error("my successor doesn't have any successors!");
                     return;
                 }

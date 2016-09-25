@@ -45,6 +45,7 @@ public class StabilizingDhtNode implements DhtNode {
     private final DhtManager dhtManager;
     private final DhtStabilizer dhtStabilizer;
     private final Server server;
+    private final NodeIdentity nodeIdentity;
     private final NodeNetwork nodeNetwork;
 
     private final String id;
@@ -58,7 +59,8 @@ public class StabilizingDhtNode implements DhtNode {
         dhtManager = new DhtManager(handlerChain, executorService, this);
         dhtStabilizer = new DhtStabilizer(this, executorService);
         server = new TCPServer(handlerChain, executorService);
-        nodeNetwork = new NodeNetwork(getNodeIdentity());
+        nodeIdentity = new NodeIdentity(id, getConnectionInfo()); // connection info is null until server is started
+        nodeNetwork = new NodeNetwork(nodeIdentity);
 
         handlerChain.addHandler(new SocketConnectionHandler(handlerChain, executorService));
         handlerChain.addHandler(new PeerPoolHandler(peerPool));
@@ -70,7 +72,7 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public void start() throws IOException {
         server.start(serverPort);
-        nodeNetwork.setCurrentNode(getNodeIdentity()); // server now has connection info
+        nodeIdentity.setConnectionInfo(getConnectionInfo()); // server now has connection info
         handlerChain.handle(null, new ServerStart(server.getConnectionInfo().getPort()));
         dhtStabilizer.start();
     }
@@ -150,7 +152,7 @@ public class StabilizingDhtNode implements DhtNode {
 
     @Override
     public NodeIdentity getNodeIdentity() {
-        return new NodeIdentity(getNodeId(), getConnectionInfo());
+        return nodeIdentity;
     }
 
     @Override

@@ -16,6 +16,7 @@ public class NodeIdentitySerializer extends JsonSerializer<NodeIdentity> {
 
         jsonGenerator.writeStringField("nodeId", nodeIdentity.getNodeId());
         jsonGenerator.writeObjectField("connectionInfo", nodeIdentity.getConnectionInfo());
+        jsonGenerator.writeObjectField("keyspace", nodeIdentity.getKeyspace());
 
         jsonGenerator.writeEndObject();
     }

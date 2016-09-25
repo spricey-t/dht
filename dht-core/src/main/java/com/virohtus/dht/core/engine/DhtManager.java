@@ -5,6 +5,9 @@ import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.handler.HandlerChain;
+import com.virohtus.dht.core.key.Keyspace;
+import com.virohtus.dht.core.key.KeyspaceService;
+import com.virohtus.dht.core.key.event.SplitKeyspaceRequest;
 import com.virohtus.dht.core.network.GetDhtNetworkFailedException;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.NodeNetwork;
@@ -20,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
@@ -32,12 +34,14 @@ public class DhtManager implements EventHandler {
     private final HandlerChain handlerChain;
     private final ExecutorService executorService;
     private final DhtNode dhtNode;
+    private final KeyspaceService keyspaceService;
     private final Resolvable<GetDhtNetwork> getDhtNetwork;
 
     public DhtManager(HandlerChain handlerChain, ExecutorService executorService, DhtNode dhtNode) {
         this.handlerChain = handlerChain;
         this.executorService = executorService;
         this.dhtNode = dhtNode;
+        this.keyspaceService = new KeyspaceService();
         this.getDhtNetwork = new Resolvable<>(GET_DHT_NETWORK_TIMEOUT);
     }
 
@@ -62,6 +66,9 @@ public class DhtManager implements EventHandler {
             case DhtProtocol.SET_PREDECESSOR_REQUEST:
                 handleSetPredecessorRequest(peerId, (SetPredecessorRequest)event);
                 break;
+            case DhtProtocol.SPLIT_KEYSPACE_REQUEST:
+                handleSplitKeyspaceRequest(peerId, (SplitKeyspaceRequest)event);
+                break;
             case DhtProtocol.PREDECESSOR_DIED:
                 handlePredecessorDied(peerId, (PredecessorDied)event);
                 break;
@@ -72,6 +79,7 @@ public class DhtManager implements EventHandler {
         Peer peer = dhtNode.openConnection(connectionInfo);
 
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        NodeIdentity nodeIdentity = dhtNode.getNodeIdentity();
         try {
             // cleanup in case we try to rejoin the network
             nodeNetwork.clearSuccessors().forEach(successor -> {
@@ -83,12 +91,17 @@ public class DhtManager implements EventHandler {
                     LOG.warn("could not find successor peer with nodeIdentity: " + successor);
                 }
             });
-            nodeNetwork.addSuccessor(peer.getNodeIdentity());
+            NodeIdentity peerIdentity = peer.getNodeIdentity();
+            Keyspace[] splitKeyspaces = keyspaceService.splitKeyspaceEqually(peerIdentity.getKeyspace());
+            nodeIdentity.setKeyspace(splitKeyspaces[0]);
+            peerIdentity.setKeyspace(splitKeyspaces[1]);
+            nodeNetwork.addSuccessor(peerIdentity);
+            peer.send(new SetPredecessorRequest(nodeIdentity));
+            peer.send(new SplitKeyspaceRequest());
         } catch (InterruptedException e) {
             LOG.error("wait for node identity interrupted when joining network");
             throw new IOException("could not join network because connection timed out" ,e);
         }
-        peer.send(new SetPredecessorRequest(dhtNode.getNodeIdentity()));
     }
 
     public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException, InterruptedException {
@@ -154,8 +167,8 @@ public class DhtManager implements EventHandler {
                     }
                     break;
             }
-        } catch (InterruptedException e) {
-            LOG.warn("wait for node identity interrupted");
+        } catch (IOException e) {
+            LOG.warn(e.getMessage());
         }
     }
 
@@ -222,6 +235,7 @@ public class DhtManager implements EventHandler {
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
         try {
             if(nodeNetwork.isEmpty()) {
+                // when node is alone - complete the ring by binding to this new node
                 Peer peer = dhtNode.openConnection(nodeIdentity.getConnectionInfo());
                 peer.send(new SetPredecessorRequest(dhtNode.getNodeIdentity()));
                 nodeNetwork.addSuccessor(nodeIdentity);
@@ -237,13 +251,36 @@ public class DhtManager implements EventHandler {
         }
     }
 
+    private void handleSplitKeyspaceRequest(String peerId, SplitKeyspaceRequest request) {
+        Optional<NodeIdentity> predecessor = dhtNode.getNodeNetwork().getPredecessor();
+        if(!predecessor.isPresent()) {
+            LOG.error("received a split keyspace request but we have no predecessor!");
+            return;
+        }
+        try {
+            NodeIdentity nodeIdentity = dhtNode.getNodeIdentity();
+            Peer predecessorPeer = dhtNode.getPeer(predecessor.get(), PeerType.INCOMING);
+            Keyspace[] splitKeyspaces = keyspaceService.splitKeyspaceEqually(nodeIdentity.getKeyspace());
+            predecessorPeer.getNodeIdentity().setKeyspace(splitKeyspaces[0]);
+            nodeIdentity.setKeyspace(splitKeyspaces[1]);
+        } catch (PeerNotFoundException e) {
+            LOG.error("could not find predecessor peer! " + e.getMessage());
+        } catch (InterruptedException e) {
+            LOG.error("wait for predecessor nodeIdentity was interrupted!");
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private void handlePredecessorDied(String peerId, PredecessorDied event) {
         NodeNetwork nodeNetwork = dhtNode.getNodeNetwork();
+        NodeIdentity nodeIdentity = dhtNode.getNodeIdentity();
         if(!nodeNetwork.hasSuccessors()) {
             // open new connection to the other end
             try {
-                dhtNode.joinNetwork(event.getInitiator().getConnectionInfo());
-            } catch (IOException e) {
+                Peer peer = dhtNode.openConnection(event.getInitiator().getConnectionInfo());
+                NodeIdentity peerIdentity = peer.getNodeIdentity();
+                // todo fix this
+            } catch (Exception e) {
                 LOG.warn("received a request to rebuild ring but the initiator seems to have died too... waiting for another request");
             }
         } else {

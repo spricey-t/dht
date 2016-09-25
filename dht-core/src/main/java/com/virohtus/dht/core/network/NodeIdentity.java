@@ -1,6 +1,8 @@
 package com.virohtus.dht.core.network;
 
 import com.virohtus.dht.core.event.EventSerializable;
+import com.virohtus.dht.core.key.Keyspace;
+import com.virohtus.dht.core.key.KeyspaceService;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.util.DhtInputStream;
 import com.virohtus.dht.core.util.DhtOutputStream;
@@ -8,25 +10,34 @@ import com.virohtus.dht.core.util.DhtOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 public class NodeIdentity implements EventSerializable {
 
     private String nodeId;
     private ConnectionInfo connectionInfo;
+    private Keyspace keyspace;
+    private Object keyspaceLock;
 
-    public NodeIdentity() {}
+    private NodeIdentity() {
+        keyspace = new KeyspaceService().createInitialKeyspace();
+        keyspaceLock = new Object();
+    }
 
     public NodeIdentity(byte[] data) throws IOException {
+        this();
         try (
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
         ) {
             nodeId = inputStream.readString();
             connectionInfo = new ConnectionInfo(inputStream.readSizedData());
+            keyspace = new Keyspace(inputStream.readSizedData());
         }
     }
 
     public NodeIdentity(String nodeId, ConnectionInfo connectionInfo) {
+        this();
         this.nodeId = nodeId;
         this.connectionInfo = connectionInfo;
     }
@@ -47,6 +58,18 @@ public class NodeIdentity implements EventSerializable {
         this.connectionInfo = connectionInfo;
     }
 
+    public Keyspace getKeyspace() {
+        synchronized (keyspaceLock) {
+            return keyspace;
+        }
+    }
+
+    public void setKeyspace(Keyspace keyspace) {
+        synchronized (keyspaceLock) {
+            this.keyspace = keyspace;
+        }
+    }
+
     @Override
     public byte[] getBytes() throws IOException {
         try (
@@ -55,6 +78,9 @@ public class NodeIdentity implements EventSerializable {
         ) {
             outputStream.writeString(nodeId);
             outputStream.writeSizedData(connectionInfo.getBytes());
+            synchronized (keyspaceLock) {
+                outputStream.writeSizedData(keyspace.getBytes());
+            }
             outputStream.flush();
             return byteArrayOutputStream.toByteArray();
         }

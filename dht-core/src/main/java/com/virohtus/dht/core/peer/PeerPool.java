@@ -4,6 +4,7 @@ import com.virohtus.dht.core.network.NodeIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 public class PeerPool {
@@ -24,8 +25,8 @@ public class PeerPool {
         Optional<Peer> potentialPeer = listPeers().stream().filter(p -> {
             try {
                 return p.getNodeIdentity().equals(nodeIdentity) && p.getPeerType().equals(peerType);
-            } catch (InterruptedException e) {
-                LOG.warn("get node identity interrupted for peer: " + p.getPeerId());
+            } catch (IOException e) {
+                LOG.warn("could not get node identity for peer: " + p.getPeerId());
                 return false;
             }
         }).findFirst();

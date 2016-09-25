@@ -1,6 +1,7 @@
 package com.virohtus.dht.core.event;
 
 import com.virohtus.dht.core.DhtProtocol;
+import com.virohtus.dht.core.key.event.SplitKeyspaceRequest;
 import com.virohtus.dht.core.network.event.*;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.util.DhtInputStream;
@@ -37,6 +38,7 @@ public class EventFactory {
             case DhtProtocol.PREDECESSOR_DIED: return new PredecessorDied(data);
             case DhtProtocol.GET_NODE_NETWORK_REQUEST: return new GetNodeNetworkRequest(data);
             case DhtProtocol.GET_NODE_NETWORK_RESPONSE: return new GetNodeNetworkResponse(data);
+            case DhtProtocol.SPLIT_KEYSPACE_REQUEST: return new SplitKeyspaceRequest(data);
         }
 
         LOG.error("received unsupported event type: " + eventType);

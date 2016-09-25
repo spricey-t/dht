@@ -5,6 +5,8 @@ public interface DhtProtocol {
     String STRING_ENCODING = "UTF-8";
     long NODE_TIMEOUT = 10000;
     long STABILIZATION_PERIOD = 2000;
+    //long GLOBAL_KEYSPACE = Long.MAX_VALUE;
+    long GLOBAL_KEYSPACE = 20;
 
     int SERVER_START = 1;
     int SERVER_SHUTDOWN = 2;
@@ -23,4 +25,5 @@ public interface DhtProtocol {
     int PREDECESSOR_DIED = 12;
     int GET_NODE_NETWORK_REQUEST = 13;
     int GET_NODE_NETWORK_RESPONSE = 14;
+    int SPLIT_KEYSPACE_REQUEST = 15;
 }

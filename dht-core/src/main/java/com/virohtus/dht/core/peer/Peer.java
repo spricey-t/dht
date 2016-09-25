@@ -45,16 +45,14 @@ public class Peer implements ConnectionDelegate {
         return peerType;
     }
 
-    public NodeIdentity getNodeIdentity() throws InterruptedException {
-        if(!nodeIdentity.valuePresent()) {
-            try {
-                connection.send(new NodeIdentityRequest().getBytes());
-            } catch (IOException e) {
-                LOG.error("failed to send NodeIdentityRequest: " + e.getMessage());
-                connection.close();
-            }
+    public NodeIdentity getNodeIdentity() throws IOException {
+        nodeIdentity.clear();
+        connection.send(new NodeIdentityRequest().getBytes());
+        try {
+            return nodeIdentity.get();
+        } catch (InterruptedException e) {
+            throw new IOException("wait for nodeIdentity interrupted!", e);
         }
-        return nodeIdentity.get();
     }
 
     public void send(Event event) throws IOException {
@@ -84,8 +82,8 @@ public class Peer implements ConnectionDelegate {
     public String toString() {
         try {
             return String.format("peerId: %s type: %s nodeId: %s", getPeerId(), getPeerType(), getNodeIdentity().getNodeId());
-        } catch (InterruptedException e) {
-            LOG.warn("wait for node identity interrupted for peer: " + getPeerId());
+        } catch (IOException e) {
+            LOG.warn("could not get node identity for peer: " + getPeerId());
             return String.format("peerId: %s");
         }
     }
