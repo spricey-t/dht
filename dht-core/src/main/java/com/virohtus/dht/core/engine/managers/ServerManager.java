@@ -2,6 +2,7 @@ package com.virohtus.dht.core.engine.managers;
 
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.event.Event;
+import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.transport.server.Server;
 import com.virohtus.dht.core.transport.server.TCPServer;
 import com.virohtus.dht.core.transport.server.event.ServerShutdown;
@@ -38,5 +39,9 @@ public class ServerManager implements Manager {
 
     public boolean isAlive() {
         return server.isAlive();
+    }
+
+    public ConnectionInfo getConnectionInfo() {
+        return server.getConnectionInfo();
     }
 }

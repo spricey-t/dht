@@ -25,8 +25,8 @@ public class PeerPool {
         Optional<Peer> potentialPeer = listPeers().stream().filter(p -> {
             try {
                 return p.getNodeIdentity().equals(nodeIdentity) && p.getPeerType().equals(peerType);
-            } catch (IOException e) {
-                LOG.warn("could not get node identity for peer: " + p.getPeerId());
+            } catch (InterruptedException e) {
+                LOG.warn("timed out waiting for node identity for peer: " + p.getPeerId());
                 return false;
             }
         }).findFirst();

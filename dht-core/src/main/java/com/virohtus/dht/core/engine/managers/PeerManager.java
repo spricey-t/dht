@@ -4,6 +4,8 @@ import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.network.event.NodeIdentityRequest;
+import com.virohtus.dht.core.network.event.NodeIdentityResponse;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
 import com.virohtus.dht.core.peer.PeerPool;
@@ -23,12 +25,14 @@ public class PeerManager implements Manager {
     private static final Logger LOG = LoggerFactory.getLogger(PeerManager.class);
     private final Dispatcher dispatcher;
     private final ExecutorService executorService;
+    private final RequestManager requestManager;
     private final PeerPool peerPool;
     private final Object shutdownLock;
 
-    public PeerManager(Dispatcher dispatcher, ExecutorService executorService) {
+    public PeerManager(Dispatcher dispatcher, ExecutorService executorService, RequestManager requestManager) {
         this.dispatcher = dispatcher;
         this.executorService = executorService;
+        this.requestManager = requestManager;
         peerPool = new PeerPool();
         shutdownLock = new Object();
     }
@@ -74,7 +78,14 @@ public class PeerManager implements Manager {
     }
 
     private void handlePeerConnected(String peerId, PeerConnected peerConnected) {
-        peerPool.addPeer(peerConnected.getPeer());
+        Peer peer = peerConnected.getPeer();
+        peerPool.addPeer(peer);
+        try {
+            NodeIdentityResponse response = requestManager.submitRequest(peer, new NodeIdentityRequest(), NodeIdentityResponse.class);
+            peer.nodeIdentity.resolve(response.getNodeIdentity());
+        } catch (Exception e) {
+            LOG.warn("failed to resolve NodeIdentity for peer: " + peer);
+        }
     }
 
     private void handlePeerDisconnected(String peerId, PeerDisconnected peerDisconnected) {

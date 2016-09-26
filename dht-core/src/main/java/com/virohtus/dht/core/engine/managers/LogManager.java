@@ -2,6 +2,8 @@ package com.virohtus.dht.core.engine.managers;
 
 import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.event.Event;
+import com.virohtus.dht.core.peer.event.PeerConnected;
+import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.server.event.ServerShutdown;
 import com.virohtus.dht.core.transport.server.event.ServerStart;
 import org.slf4j.Logger;
@@ -20,6 +22,12 @@ public class LogManager implements Manager {
             case DhtProtocol.SERVER_SHUTDOWN:
                 handleServerShutdown((ServerShutdown)event);
                 break;
+            case DhtProtocol.PEER_CONNECTED:
+                handlePeerConnected((PeerConnected)event);
+                break;
+            case DhtProtocol.PEER_DISCONNECTED:
+                handlePeerDisconnected((PeerDisconnected)event);
+                break;
         }
     }
 
@@ -31,4 +39,11 @@ public class LogManager implements Manager {
         LOG.info("server shutdown");
     }
 
+    private void handlePeerConnected(PeerConnected peerConnected) {
+        LOG.info("peer connected: " + peerConnected.getPeer());
+    }
+
+    private void handlePeerDisconnected(PeerDisconnected peerDisconnected) {
+        LOG.info("peer disconnected: " + peerDisconnected.getPeer());
+    }
 }

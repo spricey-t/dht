@@ -1,5 +1,6 @@
 package com.virohtus.dht.core;
 
+import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 
@@ -12,4 +13,5 @@ public interface DhtNode {
     void joinNetwork(ConnectionInfo existingNode) throws IOException;
     Peer openConnection(ConnectionInfo connectionInfo) throws IOException;
     void leaveNetwork();
+    NodeIdentity getNodeIdentity();
 }

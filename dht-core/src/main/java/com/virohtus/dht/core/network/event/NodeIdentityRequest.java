@@ -1,11 +1,11 @@
 package com.virohtus.dht.core.network.event;
 
 import com.virohtus.dht.core.DhtProtocol;
-import com.virohtus.dht.core.event.Event;
+import com.virohtus.dht.core.event.RequestEvent;
 
 import java.io.IOException;
 
-public class NodeIdentityRequest extends Event {
+public class NodeIdentityRequest extends RequestEvent {
 
     public NodeIdentityRequest() {
     }

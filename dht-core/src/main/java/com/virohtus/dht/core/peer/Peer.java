@@ -1,5 +1,6 @@
 package com.virohtus.dht.core.peer;
 
+import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventFactory;
@@ -28,7 +29,7 @@ public class Peer implements ConnectionDelegate {
     private final ExecutorService executorService;
     private final PeerType peerType;
     private final Connection connection;
-    public final Resolvable<NodeIdentity> nodeIdentity = new Resolvable<>(3000); //todo externalize
+    public final Resolvable<NodeIdentity> nodeIdentity = new Resolvable<>(DhtProtocol.NODE_TIMEOUT);
 
     public Peer(Dispatcher dispatcher, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
         this.peerId = new IdUtil().generateId();
@@ -46,14 +47,8 @@ public class Peer implements ConnectionDelegate {
         return peerType;
     }
 
-    public NodeIdentity getNodeIdentity() throws IOException {
-        nodeIdentity.clear();
-        connection.send(new NodeIdentityRequest().getBytes());
-        try {
-            return nodeIdentity.get();
-        } catch (InterruptedException e) {
-            throw new IOException("wait for nodeIdentity interrupted!", e);
-        }
+    public NodeIdentity getNodeIdentity() throws InterruptedException {
+        return nodeIdentity.get();
     }
 
     public void send(Event event) throws IOException {
@@ -81,11 +76,14 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public String toString() {
+        return String.format("peerId: %s type: %s", getPeerId(), getPeerType());
+        /*
         try {
             return String.format("peerId: %s type: %s nodeId: %s", getPeerId(), getPeerType(), getNodeIdentity().getNodeId());
         } catch (IOException e) {
             LOG.warn("could not get node identity for peer: " + getPeerId());
             return String.format("peerId: %s");
         }
+        */
     }
 }
