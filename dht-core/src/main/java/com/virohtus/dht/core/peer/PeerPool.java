@@ -57,4 +57,10 @@ public class PeerPool {
             return new HashSet<>(pool.values());
         }
     }
+
+    public boolean isEmpty() {
+        synchronized (pool) {
+            return pool.isEmpty();
+        }
+    }
 }

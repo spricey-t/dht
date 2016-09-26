@@ -1,5 +1,6 @@
 package com.virohtus.dht.core.transport.server;
 
+import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.event.EventHandler;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.transport.server.event.ServerShutdown;
@@ -19,15 +20,15 @@ import java.util.concurrent.Future;
 public class TCPServer implements Server {
 
     private static final Logger LOG = LoggerFactory.getLogger(TCPServer.class);
-    private final EventHandler eventHandler;
+    private final Dispatcher dispatcher;
     private final ExecutorService executorService;
     private final Object serverLock;
     private ServerSocket serverSocket;
     private Future serverFuture;
     private Exception startupException;
 
-    public TCPServer(EventHandler handler, ExecutorService executorService) {
-        this.eventHandler = handler;
+    public TCPServer(Dispatcher dispatcher, ExecutorService executorService) {
+        this.dispatcher = dispatcher;
         this.executorService = executorService;
         this.serverLock = new Object();
     }
@@ -121,7 +122,7 @@ public class TCPServer implements Server {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     Socket socket = serverSocket.accept();
-                    executorService.submit(() -> eventHandler.handle(null, new SocketConnect(socket)));
+                    executorService.submit(() -> dispatcher.dispatch(null, new SocketConnect(socket)));
                 }
             } catch(IOException e) {
                 // serverSocket must have been closed

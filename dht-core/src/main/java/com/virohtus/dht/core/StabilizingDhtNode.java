@@ -1,34 +1,17 @@
 package com.virohtus.dht.core;
 
-import com.virohtus.dht.core.engine.DhtManager;
-import com.virohtus.dht.core.engine.DhtStabilizer;
-import com.virohtus.dht.core.event.EventHandler;
-import com.virohtus.dht.core.handler.HandlerChain;
-import com.virohtus.dht.core.handler.LoggingHandler;
-import com.virohtus.dht.core.network.GetDhtNetworkFailedException;
-import com.virohtus.dht.core.network.NodeIdentity;
-import com.virohtus.dht.core.network.NodeNetwork;
-import com.virohtus.dht.core.network.event.GetDhtNetwork;
+import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.managers.LogManager;
+import com.virohtus.dht.core.engine.managers.PeerManager;
+import com.virohtus.dht.core.engine.managers.ServerManager;
 import com.virohtus.dht.core.peer.Peer;
-import com.virohtus.dht.core.peer.PeerNotFoundException;
-import com.virohtus.dht.core.peer.PeerPool;
-import com.virohtus.dht.core.peer.PeerType;
-import com.virohtus.dht.core.peer.event.PeerConnected;
-import com.virohtus.dht.core.peer.handler.PeerPoolHandler;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
-import com.virohtus.dht.core.transport.server.Server;
-import com.virohtus.dht.core.transport.server.TCPServer;
-import com.virohtus.dht.core.transport.server.event.ServerShutdown;
-import com.virohtus.dht.core.transport.server.event.ServerStart;
-import com.virohtus.dht.core.transport.server.handler.SocketConnectionHandler;
 import com.virohtus.dht.core.util.IdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -38,52 +21,40 @@ public class StabilizingDhtNode implements DhtNode {
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNode.class);
     private static final int SHUTDOWN_TIMEOUT = 5;
 
-    private final int serverPort;
-    private final ExecutorService executorService;
-    private final HandlerChain handlerChain;
-    private final PeerPool peerPool;
-    private final DhtManager dhtManager;
-    private final DhtStabilizer dhtStabilizer;
-    private final Server server;
-    private final NodeIdentity nodeIdentity;
-    private final NodeNetwork nodeNetwork;
-
     private final String id;
+    private final ExecutorService executorService;
+    private final Dispatcher dispatcher;
+    private final int serverPort;
+
+    private final LogManager logManager;
+    private final ServerManager serverManager;
+    private final PeerManager peerManager;
 
     public StabilizingDhtNode(int serverPort) {
         id = new IdUtil().generateId();
-        this.serverPort = serverPort;
         executorService = Executors.newCachedThreadPool();
-        handlerChain = new HandlerChain();
-        peerPool = new PeerPool();
-        dhtManager = new DhtManager(handlerChain, executorService, this);
-        dhtStabilizer = new DhtStabilizer(this, executorService);
-        server = new TCPServer(handlerChain, executorService);
-        nodeIdentity = new NodeIdentity(id, getConnectionInfo()); // connection info is null until server is started
-        nodeNetwork = new NodeNetwork(nodeIdentity);
+        dispatcher = new Dispatcher();
+        this.serverPort = serverPort;
 
-        handlerChain.addHandler(new SocketConnectionHandler(handlerChain, executorService));
-        handlerChain.addHandler(new PeerPoolHandler(peerPool));
-        handlerChain.addHandler(dhtManager);
-        handlerChain.addHandler(dhtStabilizer);
-        handlerChain.addHandler(new LoggingHandler());
+        // instantiate core managers
+        logManager = new LogManager();
+        serverManager = new ServerManager(dispatcher, executorService);
+        peerManager = new PeerManager(dispatcher, executorService);
+
+        // register core managers
+        dispatcher.registerManager(logManager);
+        dispatcher.registerManager(serverManager);
+        dispatcher.registerManager(peerManager);
     }
 
     @Override
     public void start() throws IOException {
-        server.start(serverPort);
-        nodeIdentity.setConnectionInfo(getConnectionInfo()); // server now has connection info
-        handlerChain.handle(null, new ServerStart(server.getConnectionInfo().getPort()));
-        dhtStabilizer.start();
+        serverManager.start(serverPort);
     }
 
     @Override
     public void shutdown() {
-        server.shutdown();
-
-        handlerChain.handle(null, new ServerShutdown());
-        dhtStabilizer.shutdown();
-
+        serverManager.shutdown();
         executorService.shutdown();
         try {
             executorService.awaitTermination(SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
@@ -94,75 +65,21 @@ public class StabilizingDhtNode implements DhtNode {
 
     @Override
     public boolean isAlive() {
-        return server != null && server.isAlive();
+        return serverManager.isAlive();
     }
 
     @Override
     public void joinNetwork(ConnectionInfo existingNode) throws IOException {
-        dhtManager.join(existingNode);
     }
 
     @Override
     public Peer openConnection(ConnectionInfo connectionInfo) throws IOException {
-        Peer peer = new Peer(handlerChain, executorService, PeerType.OUTGOING,
-                new Socket(connectionInfo.getHost(), connectionInfo.getPort()));
-        handlerChain.handle(peer.getPeerId(), new PeerConnected(peer));
-        return peer;
+        return null;
     }
 
     @Override
     public void leaveNetwork() {
 
-    }
-
-    @Override
-    public void registerEventHandler(EventHandler handler) {
-
-    }
-
-    @Override
-    public void unregisterEventHandler(EventHandler handler) {
-
-    }
-
-    @Override
-    public String getNodeId() {
-        return id;
-    }
-
-    @Override
-    public Peer getPeer(String peerId) throws PeerNotFoundException {
-        return peerPool.getPeer(peerId);
-    }
-
-    @Override
-    public Peer getPeer(NodeIdentity nodeIdentity, PeerType peerType) throws PeerNotFoundException {
-        return peerPool.getPeer(nodeIdentity, peerType);
-    }
-
-    @Override
-    public Set<Peer> listPeers() {
-        return peerPool.listPeers();
-    }
-
-    @Override
-    public ConnectionInfo getConnectionInfo() {
-        return server.getConnectionInfo();
-    }
-
-    @Override
-    public NodeIdentity getNodeIdentity() {
-        return nodeIdentity;
-    }
-
-    @Override
-    public NodeNetwork getNodeNetwork() {
-        return nodeNetwork;
-    }
-
-    @Override
-    public GetDhtNetwork getDhtNetwork() throws GetDhtNetworkFailedException, InterruptedException {
-        return dhtManager.getDhtNetwork();
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {

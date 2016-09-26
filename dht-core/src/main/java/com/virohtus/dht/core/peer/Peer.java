@@ -1,5 +1,6 @@
 package com.virohtus.dht.core.peer;
 
+import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.event.Event;
 import com.virohtus.dht.core.event.EventFactory;
 import com.virohtus.dht.core.event.EventHandler;
@@ -23,15 +24,15 @@ public class Peer implements ConnectionDelegate {
 
     private final String peerId;
     private final EventFactory eventFactory = EventFactory.getInstance();
-    private final EventHandler eventHandler;
+    private final Dispatcher dispatcher;
     private final ExecutorService executorService;
     private final PeerType peerType;
     private final Connection connection;
     public final Resolvable<NodeIdentity> nodeIdentity = new Resolvable<>(3000); //todo externalize
 
-    public Peer(EventHandler handler, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
+    public Peer(Dispatcher dispatcher, ExecutorService executorService, PeerType peerType, Socket socket) throws IOException {
         this.peerId = new IdUtil().generateId();
-        this.eventHandler = handler;
+        this.dispatcher = dispatcher;
         this.executorService = executorService;
         this.peerType = peerType;
         this.connection = new Connection(this, executorService, socket);
@@ -66,7 +67,7 @@ public class Peer implements ConnectionDelegate {
     @Override
     public void dataReceived(byte[] data) {
         try {
-            eventHandler.handle(this.getPeerId(), eventFactory.createEvent(data));
+            dispatcher.dispatch(getPeerId(), eventFactory.createEvent(data));
         } catch (Exception e) {
             LOG.error("error creating event: " + e.getMessage());
             connection.close();
@@ -75,7 +76,7 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public void receiveDisrupted(IOException e) {
-        eventHandler.handle(this.peerId, new PeerDisconnected(this));
+        dispatcher.dispatch(getPeerId(), new PeerDisconnected(this));
     }
 
     @Override
