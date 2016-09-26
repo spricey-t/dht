@@ -26,4 +26,8 @@ public interface DhtProtocol {
     int GET_NODE_NETWORK_REQUEST = 13;
     int GET_NODE_NETWORK_RESPONSE = 14;
     int SPLIT_KEYSPACE_REQUEST = 15;
+
+
+    int JOIN_NETWORK_REQUEST = 16;
+    int JOIN_NETWORK_RESPONSE = 17;
 }

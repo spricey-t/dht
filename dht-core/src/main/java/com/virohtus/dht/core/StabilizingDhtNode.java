@@ -2,7 +2,11 @@ package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.managers.*;
+import com.virohtus.dht.core.key.Keyspace;
+import com.virohtus.dht.core.key.KeyspaceService;
 import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.network.NodeLocalNet;
+import com.virohtus.dht.core.network.NodeResponsibility;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.transport.connection.ConnectionInfo;
 import com.virohtus.dht.core.util.IdUtil;
@@ -22,6 +26,8 @@ public class StabilizingDhtNode implements DhtNode {
 
     private final String id;
     private final NodeIdentity nodeIdentity;
+    private final NodeResponsibility nodeResponsibility;
+    private final NodeLocalNet localNet;
     private final ExecutorService executorService;
     private final Dispatcher dispatcher;
     private final int serverPort;
@@ -36,6 +42,8 @@ public class StabilizingDhtNode implements DhtNode {
     public StabilizingDhtNode(int serverPort) {
         id = new IdUtil().generateId();
         nodeIdentity = new NodeIdentity(id, null);
+        nodeResponsibility = new NodeResponsibility(nodeIdentity, new KeyspaceService().createInitialKeyspace());
+        localNet = new NodeLocalNet(nodeResponsibility);
         executorService = Executors.newCachedThreadPool();
         dispatcher = new Dispatcher();
         this.serverPort = serverPort;
@@ -46,15 +54,15 @@ public class StabilizingDhtNode implements DhtNode {
         serverManager = new ServerManager(dispatcher, executorService);
         peerManager = new PeerManager(dispatcher, executorService, requestManager);
         dhtNodeManager = new DhtNodeManager(this, peerManager);
-        networkManager = new NetworkManager(dispatcher, executorService, requestManager);
+        networkManager = new NetworkManager(dispatcher, executorService, this, peerManager, requestManager);
 
         // register core managers
-        dispatcher.registerManager(logManager);
         dispatcher.registerManager(requestManager);
         dispatcher.registerManager(serverManager);
         dispatcher.registerManager(peerManager);
         dispatcher.registerManager(dhtNodeManager);
         dispatcher.registerManager(networkManager);
+        dispatcher.registerManager(logManager);
     }
 
     @Override
@@ -97,6 +105,11 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public NodeIdentity getNodeIdentity() {
         return nodeIdentity;
+    }
+
+    @Override
+    public NodeLocalNet getLocalNet() {
+        return localNet;
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {

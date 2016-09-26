@@ -23,7 +23,7 @@ public class NodeIdentity implements EventSerializable {
             DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
         ) {
             nodeId = inputStream.readString();
-            connectionInfo = new ConnectionInfo(inputStream.readSizedData());
+            connectionInfo = inputStream.readEventSerializable(ConnectionInfo.class);
         }
     }
 
@@ -55,7 +55,7 @@ public class NodeIdentity implements EventSerializable {
             DhtOutputStream outputStream = new DhtOutputStream(byteArrayOutputStream)
         ) {
             outputStream.writeString(nodeId);
-            outputStream.writeSizedData(connectionInfo.getBytes());
+            outputStream.writeEventSerializable(connectionInfo);
             outputStream.flush();
             return byteArrayOutputStream.toByteArray();
         }

@@ -32,14 +32,14 @@ public class RequestManager implements Manager {
     }
 
     public <T extends ResponseEvent> T submitRequest(Peer peer, RequestEvent request, Class<T> clazz) throws InterruptedException, IOException {
-        Resolvable<ResponseEvent> responseResolvable;
+        Resolvable<T> responseResolvable;
         synchronized (requestMap) {
             if(!requestMap.containsKey(request.getRequestId())) {
                 requestMap.put(request.getRequestId(), new Resolvable<>(DhtProtocol.NODE_TIMEOUT));
             }
-            responseResolvable = requestMap.get(request.getRequestId());
+            responseResolvable = (Resolvable<T>) requestMap.get(request.getRequestId());
         }
         peer.send(request);
-        return (T) responseResolvable.get();
+        return responseResolvable.get();
     }
 }

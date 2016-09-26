@@ -1,6 +1,7 @@
 package com.virohtus.dht.core.util;
 
 import com.virohtus.dht.core.DhtProtocol;
+import com.virohtus.dht.core.event.EventSerializable;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,5 +21,16 @@ public class DhtOutputStream extends DataOutputStream {
     public void writeSizedData(byte[] data) throws IOException {
         writeInt(data.length);
         write(data);
+    }
+
+    public void writeEventSerializable(EventSerializable eventSerializable) throws IOException {
+        writeSizedData(eventSerializable.getBytes());
+    }
+
+    public void writeNullableEventSerializable(EventSerializable nullableEventSerializable) throws IOException {
+        writeBoolean(nullableEventSerializable != null);
+        if(nullableEventSerializable != null) {
+            writeEventSerializable(nullableEventSerializable);
+        }
     }
 }
