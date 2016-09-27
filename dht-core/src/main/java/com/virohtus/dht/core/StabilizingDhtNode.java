@@ -57,12 +57,12 @@ public class StabilizingDhtNode implements DhtNode {
         networkManager = new NetworkManager(dispatcher, executorService, this, peerManager, requestManager);
 
         // register core managers
+        dispatcher.registerManager(logManager);
         dispatcher.registerManager(requestManager);
         dispatcher.registerManager(serverManager);
         dispatcher.registerManager(peerManager);
         dispatcher.registerManager(dhtNodeManager);
         dispatcher.registerManager(networkManager);
-        dispatcher.registerManager(logManager);
     }
 
     @Override

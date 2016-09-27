@@ -76,12 +76,6 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public String toString() {
-//        return String.format("peerId: %s type: %s", getPeerId(), getPeerType());
-        try {
-            return String.format("peerId: %s type: %s nodeId: %s", getPeerId(), getPeerType(), getNodeIdentity().getNodeId());
-        } catch (InterruptedException e) {
-            LOG.warn("could not get node identity for peer: " + getPeerId());
-            return String.format("peerId: %s");
-        }
+        return String.format("peerId: %s type: %s", getPeerId(), getPeerType());
     }
 }

@@ -84,7 +84,7 @@ public class PeerManager implements Manager {
             NodeIdentityResponse response = requestManager.submitRequest(peer, new NodeIdentityRequest(), NodeIdentityResponse.class);
             peer.nodeIdentity.resolve(response.getNodeIdentity());
         } catch (Exception e) {
-            LOG.warn("failed to resolve NodeIdentity for peer: " + peer);
+            LOG.warn("failed to resolve NodeIdentity for peer: " + peer + " reason: " + e);
         }
     }
 
