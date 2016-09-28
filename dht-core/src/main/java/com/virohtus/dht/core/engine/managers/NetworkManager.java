@@ -61,6 +61,7 @@ public class NetworkManager implements Manager {
     public void joinNetwork(ConnectionInfo connectionInfo) throws IOException {
         Peer peer = openConnection(connectionInfo);
         NodeLocalNet localNet = dhtNode.getLocalNet();
+        /*
         JoinNetworkResponse response;
         try {
             response = requestManager.submitRequest(peer, new JoinNetworkRequest(dhtNode.getNodeIdentity()), JoinNetworkResponse.class);
@@ -72,6 +73,7 @@ public class NetworkManager implements Manager {
             peer.shutdown();
             throw new IOException("timed out waiting for JoinNetworkResponse " + e.getMessage());
         }
+        */
     }
 
 

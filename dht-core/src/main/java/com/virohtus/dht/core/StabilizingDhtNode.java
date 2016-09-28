@@ -53,7 +53,7 @@ public class StabilizingDhtNode implements DhtNode {
         requestManager = new RequestManager();
         serverManager = new ServerManager(dispatcher, executorService);
         peerManager = new PeerManager(dispatcher, executorService, requestManager);
-        dhtNodeManager = new DhtNodeManager(this, peerManager);
+        dhtNodeManager = new DhtNodeManager(dispatcher, this, peerManager);
         networkManager = new NetworkManager(dispatcher, executorService, this, peerManager, requestManager);
 
         // register core managers
