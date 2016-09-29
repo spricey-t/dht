@@ -48,6 +48,9 @@ public class NetworkManager implements Manager {
             case DhtProtocol.JOIN_NETWORK_REQUEST:
                 handleJoinNetworkRequest(peerId, (JoinNetworkRequest)event);
                 break;
+            case DhtProtocol.JOIN_NETWORK_RESPONSE:
+                handleJoinNetworkResponse(peerId, (JoinNetworkResponse)event);
+                break;
         }
     }
 
@@ -84,12 +87,12 @@ public class NetworkManager implements Manager {
             Keyspace[] splitKeyspaces = keyspaceService.splitKeyspaceEqually(localNet.getResponsibility().getKeyspace());
             localNet.setPredecessorResponsibility(new NodeResponsibility(peer.getNodeIdentity(), splitKeyspaces[0]));
             localNet.getResponsibility().setKeyspace(splitKeyspaces[1]);
+            peer.send(new JoinNetworkResponse(request.getRequestId(), localNet));
 
             if(!localNet.hasSuccessor()) {
                 // set the new node to be successor as well - to complete ring
-                openConnection(localNet.getPredecessorResponsibility().getNodeIdentity().getConnectionInfo());
-                localNet.setSuccessorResponsibility(localNet.getPredecessorResponsibility());
-                peer.send(new JoinNetworkResponse(request.getRequestId(), localNet));
+//                joinNetwork(localNet.getPredecessorResponsibility().getNodeIdentity().getConnectionInfo());
+//                Peer p = openConnection(peer.getNodeIdentity().getConnectionInfo());
             }
 
             LOG.info("my responsibility: " + localNet.getResponsibility());
@@ -101,5 +104,8 @@ public class NetworkManager implements Manager {
         } catch (IOException e) {
             LOG.warn("could not establish outgoing connection to complete dht ring! " + e.getMessage());
         }
+    }
+
+    private void handleJoinNetworkResponse(String peerId, JoinNetworkResponse response) {
     }
 }

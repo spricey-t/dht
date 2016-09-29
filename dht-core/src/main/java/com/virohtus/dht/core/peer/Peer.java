@@ -68,7 +68,7 @@ public class Peer implements ConnectionDelegate {
         try {
             dispatcher.dispatch(getPeerId(), eventFactory.createEvent(data));
         } catch (Exception e) {
-            LOG.error("error creating event: " + e.getMessage());
+            LOG.error("error creating event: " + e.getMessage() + " for peer: " + getPeerId());
             connection.close();
         }
     }
