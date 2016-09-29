@@ -7,7 +7,7 @@ import com.virohtus.dht.core.key.Keyspace;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.NodeNetwork;
 import com.virohtus.dht.core.peer.Peer;
-import com.virohtus.dht.core.transport.connection.ConnectionInfo;
+import com.virohtus.dht.transport.connection.ConnectionInfo;
 import com.virohtus.dht.rest.key.KeyspaceSerializer;
 import com.virohtus.dht.rest.network.NodeNetworkSerializer;
 import com.virohtus.dht.rest.node.ConnectionInfoSerializer;

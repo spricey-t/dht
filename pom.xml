@@ -11,6 +11,7 @@
     <modules>
         <module>dht-core</module>
         <module>dht-rest</module>
+        <module>dht-transport</module>
     </modules>
 
     <properties>
