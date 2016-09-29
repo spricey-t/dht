@@ -55,6 +55,10 @@ public class Peer implements ConnectionDelegate {
         connection.send(event.getBytes());
     }
 
+    public void listen() {
+        connection.listen();
+    }
+
     public void shutdown() {
         connection.close();
     }

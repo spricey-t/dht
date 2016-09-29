@@ -2,6 +2,7 @@ package com.virohtus.dht.core.engine.managers;
 
 import com.virohtus.dht.core.DhtProtocol;
 import com.virohtus.dht.core.event.Event;
+import com.virohtus.dht.core.network.event.NodeIdentityResponse;
 import com.virohtus.dht.core.peer.event.PeerConnected;
 import com.virohtus.dht.core.peer.event.PeerDisconnected;
 import com.virohtus.dht.core.transport.server.event.ServerShutdown;
@@ -28,6 +29,10 @@ public class LogManager implements Manager {
             case DhtProtocol.PEER_DISCONNECTED:
                 handlePeerDisconnected((PeerDisconnected)event);
                 break;
+
+            case DhtProtocol.NODE_IDENTITY_RESPONSE:
+                handleNodeIdentityResponse(peerId, (NodeIdentityResponse)event);
+                break;
         }
     }
 
@@ -45,5 +50,9 @@ public class LogManager implements Manager {
 
     private void handlePeerDisconnected(PeerDisconnected peerDisconnected) {
         LOG.info("peer disconnected: " + peerDisconnected.getPeer());
+    }
+
+    private void handleNodeIdentityResponse(String peerId, NodeIdentityResponse response) {
+        LOG.info(String.format("peer: %s nodeIdentity: %s", peerId, response.getNodeIdentity().toString()));
     }
 }

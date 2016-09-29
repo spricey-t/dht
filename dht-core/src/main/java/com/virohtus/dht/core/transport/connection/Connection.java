@@ -16,14 +16,26 @@ public class Connection {
     private final Socket socket;
     private final DhtOutputStream outputStream;
     private final DhtInputStream inputStream;
-    private final Future receiveFuture;
+    private final ExecutorService executorService;
+    private Future receiveFuture;
 
     public Connection(ConnectionDelegate connectionDelegate, ExecutorService executorService, Socket socket) throws IOException {
         this.connectionDelegate = connectionDelegate;
         this.socket = socket;
         this.outputStream = new DhtOutputStream(socket.getOutputStream());
         this.inputStream = new DhtInputStream(socket.getInputStream());
-        this.receiveFuture = executorService.submit(this::receive);
+        this.executorService = executorService;
+    }
+
+    public void listen() {
+        if(isListening()) {
+            return;
+        }
+        receiveFuture = executorService.submit(this::receive);
+    }
+
+    public boolean isListening() {
+        return receiveFuture != null && !receiveFuture.isCancelled() && !receiveFuture.isDone();
     }
 
     public void send(byte[] data) throws IOException {
@@ -32,7 +44,9 @@ public class Connection {
     }
 
     public void close() {
-        receiveFuture.cancel(true);
+        if(isListening()) {
+            receiveFuture.cancel(true);
+        }
         try {
             socket.close(); // force dataInputStream.read to unblock
         } catch (IOException e) {

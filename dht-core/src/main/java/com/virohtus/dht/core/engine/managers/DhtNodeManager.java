@@ -37,15 +37,12 @@ public class DhtNodeManager implements Manager {
 
     private void handleNodeIdentityRequest(String peerId, NodeIdentityRequest request) {
         try {
-            dispatcher.waitForEvent(DhtProtocol.PEER_CONNECTED);
             Peer peer = peerManager.getPeer(peerId);
             peer.send(new NodeIdentityResponse(request.getRequestId(), dhtNode.getNodeIdentity()));
         } catch (PeerNotFoundException e) {
             LOG.warn("received NodeIdentityRequest from an unmanaged peer: " + peerId);
         } catch (IOException e) {
             LOG.warn("failed to send NodeIdentityResponse to peer: " + peerId);
-        } catch (InterruptedException e) {
-            LOG.warn("wait for peer connected event timed out when handling nodeIdentityRequest for peer: " + peerId);
         }
     }
 

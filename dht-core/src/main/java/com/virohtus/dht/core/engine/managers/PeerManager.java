@@ -80,6 +80,7 @@ public class PeerManager implements Manager {
     private void handlePeerConnected(String peerId, PeerConnected peerConnected) {
         Peer peer = peerConnected.getPeer();
         peerPool.addPeer(peer);
+        peer.listen();
         try {
             NodeIdentityResponse response = requestManager.submitRequest(peer, new NodeIdentityRequest(), NodeIdentityResponse.class);
             peer.nodeIdentity.resolve(response.getNodeIdentity());
