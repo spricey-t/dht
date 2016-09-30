@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Connection {
 
@@ -13,29 +14,34 @@ public abstract class Connection {
 
     protected final ConnectionDelegate connectionDelegate;
     protected final ExecutorService executorService;
+    private final AtomicBoolean listenerStarted;
     private Future receiverFuture;
 
     protected Connection(ConnectionDelegate connectionDelegate, ExecutorService executorService) {
         this.connectionDelegate = connectionDelegate;
         this.executorService = executorService;
+        this.listenerStarted = new AtomicBoolean(false);
     }
 
     public abstract void send(byte[] data) throws IOException;
     protected abstract byte[] receive() throws IOException;
+    protected abstract void cleanup();
 
     public void listen() {
         if(isListening()) {
             return;
         }
-        receiverFuture = executorService.submit(() -> {
+        synchronized (listenerStarted) {
+            listenerStarted.set(false);
+            receiverFuture = executorService.submit(this::listenerTask);
             try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    connectionDelegate.dataReceived(receive());
+                while(!listenerStarted.get()) {
+                    listenerStarted.wait();
                 }
-            } catch (IOException e) {
-                connectionDelegate.receiveDisrupted(e);
+            } catch (InterruptedException e) {
+                LOG.warn("wait for listener startup interrupted!");
             }
-        });
+        }
     }
 
     public boolean isListening() {
@@ -45,6 +51,23 @@ public abstract class Connection {
     public void close() {
         if(isListening()) {
             receiverFuture.cancel(true);
+        }
+    }
+
+    private void listenerTask() {
+        synchronized (listenerStarted) {
+            listenerStarted.set(true);
+            listenerStarted.notifyAll();
+        }
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                connectionDelegate.dataReceived(receive());
+            }
+        } catch (IOException e) {
+            LOG.info("connection disrupted: " + e.getMessage());
+        } finally {
+            cleanup();
+            connectionDelegate.connectionClosed();
         }
     }
 }

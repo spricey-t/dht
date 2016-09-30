@@ -34,4 +34,15 @@ public class TcpConnection extends Connection {
     protected byte[] receive() throws IOException {
         return inputStream.readSizedData();
     }
+
+    @Override
+    protected void cleanup() {
+        try {
+            outputStream.close();
+            inputStream.close();
+            socket.close();
+        } catch (IOException e) {
+            LOG.warn("flush failed on cleanup of TcpConnection");
+        }
+    }
 }
