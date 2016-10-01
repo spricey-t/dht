@@ -1,9 +1,10 @@
-package com.virohtus.dht.core;
+package com.virohtus.dht.core.transport.protocol;
 
 public interface DhtProtocol {
 
     String STRING_ENCODING = "UTF-8";
     int BUFFER_SIZE = 256;
+    int HEADER_SIZE = 8;
 
     long NODE_TIMEOUT = 10000;
     long STABILIZATION_PERIOD = 2000;

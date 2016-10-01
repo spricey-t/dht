@@ -1,46 +1,37 @@
 package com.virohtus.dht.core.peer;
 
-import com.virohtus.dht.core.DhtProtocol;
+import com.virohtus.dht.core.transport.connection.Connection;
+import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
+import com.virohtus.dht.core.transport.connection.DhtConnection;
+import com.virohtus.dht.core.transport.protocol.DhtEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
+import java.io.IOException;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
-public class Peer {
+public class Peer implements ConnectionDelegate {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Peer.class);
     private final ExecutorService executorService;
-    private final AsynchronousSocketChannel socketChannel;
-    private Future listenFuture;
+    private final Connection connection;
 
     public Peer(ExecutorService executorService, AsynchronousSocketChannel socketChannel) {
         this.executorService = executorService;
-        this.socketChannel = socketChannel;
+        connection = new DhtConnection(this, executorService, socketChannel);
     }
 
     public void listen() {
-        listenFuture = executorService.submit(() -> {
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    ByteBuffer byteBuffer = ByteBuffer.allocate(DhtProtocol.BUFFER_SIZE);
-                    int bytesRead = socketChannel.read(byteBuffer).get();
-                    if(bytesRead == 0) {
-                        continue;
-                    }
-                    if(bytesRead < 0) {
-                        // todo error
-                        return;
-                    }
-                    byte[] data = new byte[bytesRead];
-                    System.arraycopy(byteBuffer.array(), 0, data, 0, bytesRead);
-                    System.out.println(new String(data));
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        });
+        connection.listen();
+    }
+
+    public void send(DhtEvent data) throws IOException {
+        connection.send(data);
+    }
+
+    @Override
+    public void dataReceived(DhtEvent data) {
+        LOG.info("received dht packet: " + new String(data.getPayload()));
     }
 }

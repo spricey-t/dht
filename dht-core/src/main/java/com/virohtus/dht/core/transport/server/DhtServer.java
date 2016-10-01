@@ -1,5 +1,6 @@
-package com.virohtus.dht.core.transport;
+package com.virohtus.dht.core.transport.server;
 
+import com.virohtus.dht.core.transport.ServerDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,14 +12,14 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-public class ManagedServer implements DhtServer {
+public class DhtServer implements Server {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ManagedServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DhtServer.class);
     private final ServerDelegate serverDelegate;
     private final ExecutorService executorService;
     private final AsynchronousServerSocketChannel serverSocketChannel;
 
-    public ManagedServer(ServerDelegate serverDelegate, ExecutorService executorService, SocketAddress socketAddress) throws IOException {
+    public DhtServer(ServerDelegate serverDelegate, ExecutorService executorService, SocketAddress socketAddress) throws IOException {
         this.serverDelegate = serverDelegate;
         this.executorService = executorService;
         AsynchronousChannelGroup group = AsynchronousChannelGroup.withCachedThreadPool(executorService, 3);
