@@ -36,12 +36,12 @@ public class DhtConnection implements Connection {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     byte[] headerData = readSizedData(DhtProtocol.HEADER_SIZE);
-                    Headers headers = new Headers(headerData);
+                    Headers headers = Headers.deserialize(headerData);
                     byte[] payload = readSizedData(headers.getPayloadLength());
-                    DhtEvent packet = new DhtEvent(headers, payload);
+                    DhtEvent event = new DhtEvent(headers, payload);
                     synchronized (connectionDelegateLock) {
                         if (connectionDelegate != null) {
-                            connectionDelegate.dataReceived(packet);
+                            connectionDelegate.dataReceived(event);
                         }
                     }
                 }

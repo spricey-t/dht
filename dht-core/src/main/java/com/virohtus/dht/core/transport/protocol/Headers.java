@@ -16,13 +16,14 @@ public class Headers {
         this.payloadLength = payloadLength;
     }
 
-    public Headers(byte[] data) throws IOException {
+    public static Headers deserialize(byte[] data) throws IOException {
         try (
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
         ) {
-            version = inputStream.readInt();
-            payloadLength = inputStream.readInt();
+            int version = inputStream.readInt();
+            int payloadLength = inputStream.readInt();
+            return new Headers(version, payloadLength);
         }
     }
 
@@ -44,5 +45,24 @@ public class Headers {
 
     public int getPayloadLength() {
         return payloadLength;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Headers headers = (Headers) o;
+
+        if (version != headers.version) return false;
+        return payloadLength == headers.payloadLength;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = version;
+        result = 31 * result + payloadLength;
+        return result;
     }
 }

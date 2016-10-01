@@ -1,7 +1,9 @@
 package com.virohtus.dht.core.transport.protocol;
 
+import com.virohtus.dht.core.transport.io.DhtInputStream;
 import com.virohtus.dht.core.transport.io.DhtOutputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
