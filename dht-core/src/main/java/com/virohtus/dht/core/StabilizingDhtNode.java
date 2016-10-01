@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,9 +50,10 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
         LOG.info("server shutdown");
     }
 
-    public void start() throws ExecutionException, InterruptedException {
+    public void start() throws ExecutionException, InterruptedException, IOException {
         Future serverFuture = server.serve();
-        LOG.info("server started");
+        SocketAddress serverSocketAddress = server.getSocketAddress();
+        LOG.info("server started on port " + ((InetSocketAddress)serverSocketAddress).getPort());
     }
 
 
@@ -61,8 +64,28 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
         peers.get(0).send(event);
     }
 
+    private void connect(SocketAddress socketAddress) throws IOException, ExecutionException, InterruptedException {
+        AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open();
+        Future connectFuture = socketChannel.connect(socketAddress);
+        connectFuture.get();
+        Peer peer = new Peer(executorService, socketChannel);
+        peers.add(peer);
+    }
+
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
         StabilizingDhtNode node = new StabilizingDhtNode(0);
         node.start();
+
+        Scanner key = new Scanner(System.in);
+        String cmd = "";
+        while(!cmd.equalsIgnoreCase("quit")) {
+            cmd = key.nextLine();
+            String[] cmdArgs = cmd.split("\\s");
+            if(cmdArgs[0].equals("connect")) {
+                node.connect(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+            } else {
+                node.send(cmd);
+            }
+        }
     }
 }

@@ -41,4 +41,9 @@ public class DhtServer implements Server {
             serverDelegate.serverShutdown();
         });
     }
+
+    @Override
+    public SocketAddress getSocketAddress() throws IOException {
+        return serverSocketChannel.getLocalAddress();
+    }
 }
