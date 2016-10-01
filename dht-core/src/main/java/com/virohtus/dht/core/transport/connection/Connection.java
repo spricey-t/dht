@@ -8,5 +8,6 @@ public interface Connection {
     void listen();
     boolean isListening();
     void send(DhtEvent event) throws IOException;
+    void setConnectionDelegate(ConnectionDelegate connectionDelegate);
     void close();
 }

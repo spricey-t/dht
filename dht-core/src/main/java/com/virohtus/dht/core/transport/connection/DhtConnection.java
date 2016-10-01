@@ -14,16 +14,17 @@ import java.util.concurrent.Future;
 
 public class DhtConnection implements Connection {
 
-    private final ConnectionDelegate connectionDelegate;
     private final ExecutorService executorService;
     private final AsynchronousSocketChannel socketChannel;
+    private final Object connectionDelegateLock;
+    private ConnectionDelegate connectionDelegate;
     private Future listenerFuture;
 
-    public DhtConnection(ConnectionDelegate connectionDelegate, ExecutorService executorService,
+    public DhtConnection(ExecutorService executorService,
                          AsynchronousSocketChannel socketChannel) {
-        this.connectionDelegate = connectionDelegate;
         this.executorService = executorService;
         this.socketChannel = socketChannel;
+        this.connectionDelegateLock = new Object();
     }
 
     @Override
@@ -38,7 +39,11 @@ public class DhtConnection implements Connection {
                     Headers headers = new Headers(headerData);
                     byte[] payload = readSizedData(headers.getPayloadLength());
                     DhtEvent packet = new DhtEvent(headers, payload);
-                    connectionDelegate.dataReceived(packet);
+                    synchronized (connectionDelegateLock) {
+                        if (connectionDelegate != null) {
+                            connectionDelegate.dataReceived(packet);
+                        }
+                    }
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -58,6 +63,13 @@ public class DhtConnection implements Connection {
     @Override
     public void send(DhtEvent event) throws IOException {
         socketChannel.write(ByteBuffer.wrap(event.getBytes()));
+    }
+
+    @Override
+    public void setConnectionDelegate(ConnectionDelegate connectionDelegate) {
+        synchronized (connectionDelegateLock) {
+            this.connectionDelegate = connectionDelegate;
+        }
     }
 
     @Override

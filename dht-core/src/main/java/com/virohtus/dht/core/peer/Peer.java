@@ -2,13 +2,11 @@ package com.virohtus.dht.core.peer;
 
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
-import com.virohtus.dht.core.transport.connection.DhtConnection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutorService;
 
 public class Peer implements ConnectionDelegate {
@@ -17,9 +15,10 @@ public class Peer implements ConnectionDelegate {
     private final ExecutorService executorService;
     private final Connection connection;
 
-    public Peer(ExecutorService executorService, AsynchronousSocketChannel socketChannel) {
+    public Peer(ExecutorService executorService, Connection connection) {
         this.executorService = executorService;
-        connection = new DhtConnection(this, executorService, socketChannel);
+        this.connection = connection;
+        connection.setConnectionDelegate(this);
     }
 
     public void listen() {

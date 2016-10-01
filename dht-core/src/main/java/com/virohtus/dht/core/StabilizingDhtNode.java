@@ -1,11 +1,13 @@
 package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.peer.Peer;
+import com.virohtus.dht.core.transport.connection.Connection;
+import com.virohtus.dht.core.transport.connection.DhtConnection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.Headers;
 import com.virohtus.dht.core.transport.server.Server;
-import com.virohtus.dht.core.transport.server.DhtServer;
-import com.virohtus.dht.core.transport.ServerDelegate;
+import com.virohtus.dht.core.transport.server.AsyncServer;
+import com.virohtus.dht.core.transport.server.ServerDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,18 +33,15 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
 
     public StabilizingDhtNode(int serverPort) throws IOException {
         executorService = Executors.newCachedThreadPool();
-        server = new DhtServer(this, executorService, new InetSocketAddress("localhost", serverPort));
+        server = new AsyncServer(this, executorService, new InetSocketAddress("localhost", serverPort));
     }
 
     @Override
-    public void connectionOpened(AsynchronousSocketChannel socketChannel) {
-        try {
-            LOG.info("connection opened: " + socketChannel.getRemoteAddress());
-            Peer peer = new Peer(executorService, socketChannel);
-            peers.add(peer);
-            peer.listen();
-        } catch (IOException e) {
-        }
+    public void connectionOpened(Connection connection) {
+        LOG.info("connection opened: ");
+        Peer peer = new Peer(executorService, connection);
+        peers.add(peer);
+        peer.listen();
     }
 
     @Override
@@ -51,7 +50,7 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
     }
 
     public void start() throws ExecutionException, InterruptedException, IOException {
-        Future serverFuture = server.serve();
+        server.listen();
         SocketAddress serverSocketAddress = server.getSocketAddress();
         LOG.info("server started on port " + ((InetSocketAddress)serverSocketAddress).getPort());
     }
@@ -68,7 +67,8 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
         AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open();
         Future connectFuture = socketChannel.connect(socketAddress);
         connectFuture.get();
-        Peer peer = new Peer(executorService, socketChannel);
+        Connection connection = new DhtConnection(executorService, socketChannel);
+        Peer peer = new Peer(executorService, connection);
         peers.add(peer);
     }
 
