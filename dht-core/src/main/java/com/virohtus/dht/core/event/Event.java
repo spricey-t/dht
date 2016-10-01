@@ -1,5 +1,6 @@
 package com.virohtus.dht.core.event;
 
+/*
 import com.virohtus.dht.core.transport.DhtInputStream;
 import com.virohtus.dht.core.transport.DhtOutputStream;
 
@@ -44,3 +45,4 @@ public abstract class Event {
         }
     }
 }
+*/

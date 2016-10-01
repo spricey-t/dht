@@ -3,6 +3,8 @@ package com.virohtus.dht.core;
 public interface DhtProtocol {
 
     String STRING_ENCODING = "UTF-8";
+    int BUFFER_SIZE = 256;
+
     long NODE_TIMEOUT = 10000;
     long STABILIZATION_PERIOD = 2000;
     //long GLOBAL_KEYSPACE = Long.MAX_VALUE;

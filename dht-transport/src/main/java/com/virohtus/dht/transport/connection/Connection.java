@@ -5,7 +5,7 @@ package com.virohtus.dht.transport.connection;
  * Purpose is to send and receive data, ensuring consistency
  */
 public interface Connection {
-    void send(byte[] data) throws SendFailedException;
+    void send(byte[] data);
     void receive();
     void close();
 }
