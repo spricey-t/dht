@@ -33,4 +33,8 @@ public class Peer implements ConnectionDelegate {
     public void dataReceived(DhtEvent data) {
         LOG.info("received dht packet: " + new String(data.getPayload()));
     }
+
+    @Override
+    public void listenerDisrupted() {
+    }
 }

@@ -3,6 +3,8 @@ package com.virohtus.dht.core.transport.connection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 import com.virohtus.dht.core.transport.protocol.Headers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,17 +13,19 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DhtConnection implements Connection {
+public class AsyncConnection implements Connection {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncConnection.class);
     private final ExecutorService executorService;
     private final AsynchronousSocketChannel socketChannel;
     private final Object connectionDelegateLock;
     private ConnectionDelegate connectionDelegate;
     private Future listenerFuture;
 
-    public DhtConnection(ExecutorService executorService,
-                         AsynchronousSocketChannel socketChannel) {
+    public AsyncConnection(ExecutorService executorService,
+                           AsynchronousSocketChannel socketChannel) {
         this.executorService = executorService;
         this.socketChannel = socketChannel;
         this.connectionDelegateLock = new Object();
@@ -32,7 +36,12 @@ public class DhtConnection implements Connection {
         if(isListening()) {
             return;
         }
+        final AtomicBoolean started = new AtomicBoolean(false);
         listenerFuture = executorService.submit(() -> {
+            synchronized (started) {
+                started.set(true);
+                started.notifyAll();
+            }
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     byte[] headerData = readSizedData(DhtProtocol.HEADER_SIZE);
@@ -45,19 +54,28 @@ public class DhtConnection implements Connection {
                         }
                     }
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                LOG.warn("receiver error: " + e);
+            } finally {
+                if(connectionDelegate != null) {
+                    connectionDelegate.listenerDisrupted();
+                }
             }
         });
+        synchronized (started) {
+            while(!started.get()) {
+                try {
+                    started.wait();
+                } catch (InterruptedException e) {
+                    LOG.error("wait for connection listener startup interrupted");
+                }
+            }
+        }
     }
 
     @Override
     public boolean isListening() {
-        return false;
+        return listenerFuture != null && !listenerFuture.isCancelled() && !listenerFuture.isDone();
     }
 
     @Override
@@ -74,6 +92,11 @@ public class DhtConnection implements Connection {
 
     @Override
     public void close() {
+        try {
+            socketChannel.close();
+        } catch (IOException e) {
+            LOG.error("io error occurred when closing connection: " + e);
+        }
     }
 
     private byte[] readSizedData(int dataSize) throws ExecutionException, InterruptedException, IOException {

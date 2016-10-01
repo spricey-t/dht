@@ -2,7 +2,7 @@ package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.transport.connection.Connection;
-import com.virohtus.dht.core.transport.connection.DhtConnection;
+import com.virohtus.dht.core.transport.connection.AsyncConnection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.Headers;
 import com.virohtus.dht.core.transport.server.Server;
@@ -67,7 +67,7 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
         AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open();
         Future connectFuture = socketChannel.connect(socketAddress);
         connectFuture.get();
-        Connection connection = new DhtConnection(executorService, socketChannel);
+        Connection connection = new AsyncConnection(executorService, socketChannel);
         Peer peer = new Peer(executorService, connection);
         peers.add(peer);
     }

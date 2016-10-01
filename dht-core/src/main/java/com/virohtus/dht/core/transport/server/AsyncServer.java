@@ -1,13 +1,12 @@
 package com.virohtus.dht.core.transport.server;
 
-import com.virohtus.dht.core.transport.connection.DhtConnection;
+import com.virohtus.dht.core.transport.connection.AsyncConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.channels.AsynchronousChannelGroup;
-import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +41,7 @@ public class AsyncServer implements Server {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     AsynchronousSocketChannel socketChannel = serverSocketChannel.accept().get();
-                    serverDelegate.connectionOpened(new DhtConnection(executorService, socketChannel));
+                    serverDelegate.connectionOpened(new AsyncConnection(executorService, socketChannel));
                 }
             } finally {
                 serverDelegate.serverShutdown();
