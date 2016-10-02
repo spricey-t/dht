@@ -29,6 +29,10 @@ public class Peer implements ConnectionDelegate {
         connection.send(data);
     }
 
+    public void shutdown() {
+        connection.close();
+    }
+
     @Override
     public void dataReceived(DhtEvent data) {
         LOG.info("received dht packet: " + new String(data.getPayload()));
@@ -36,5 +40,6 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public void listenerDisrupted() {
+        shutdown();
     }
 }

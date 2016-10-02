@@ -55,7 +55,7 @@ public class AsyncConnection implements Connection {
                     }
                 }
             } catch (Exception e) {
-                LOG.warn("receiver error: " + e);
+                LOG.info("receiver error: " + e);
             } finally {
                 if(connectionDelegate != null) {
                     connectionDelegate.listenerDisrupted();

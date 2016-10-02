@@ -18,14 +18,12 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class StabilizingDhtNode implements DhtNode, ServerDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNode.class);
+    private static final int SHUTDOWN_TIMEOUT = 3; // seconds
     private final ExecutorService executorService;
     private final Server server;
 
@@ -49,12 +47,24 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
         LOG.info("server shutdown");
     }
 
+    @Override
     public void start() throws ExecutionException, InterruptedException, IOException {
         server.listen();
         SocketAddress serverSocketAddress = server.getSocketAddress();
         LOG.info("server started on port " + ((InetSocketAddress)serverSocketAddress).getPort());
     }
 
+    @Override
+    public void shutdown() {
+        server.shutdown();
+        executorService.shutdown();
+
+        try {
+            executorService.awaitTermination(SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
+    }
 
     private void send(String message) throws IOException {
         byte[] data = message.getBytes();
@@ -87,5 +97,7 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
                 node.send(cmd);
             }
         }
+        node.shutdown();
     }
+
 }
