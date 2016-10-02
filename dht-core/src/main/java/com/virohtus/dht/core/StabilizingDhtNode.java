@@ -1,13 +1,15 @@
 package com.virohtus.dht.core;
 
+import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.store.LogStore;
+import com.virohtus.dht.core.engine.store.ServerStore;
+import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
 import com.virohtus.dht.core.peer.Peer;
+import com.virohtus.dht.core.engine.store.PeerStore;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.AsyncConnection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.Headers;
-import com.virohtus.dht.core.transport.server.Server;
-import com.virohtus.dht.core.transport.server.AsyncServer;
-import com.virohtus.dht.core.transport.server.ServerDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,48 +17,40 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.*;
 
-public class StabilizingDhtNode implements DhtNode, ServerDelegate {
+public class StabilizingDhtNode implements DhtNode {
 
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNode.class);
     private static final int SHUTDOWN_TIMEOUT = 3; // seconds
     private final ExecutorService executorService;
-    private final Server server;
-
-    private List<Peer> peers = new ArrayList<>();
+    private final Dispatcher dispatcher;
+    private final ServerStore serverStore;
+    private final PeerStore peerStore;
 
     public StabilizingDhtNode(int serverPort) throws IOException {
         executorService = Executors.newCachedThreadPool();
-        server = new AsyncServer(this, executorService, new InetSocketAddress("localhost", serverPort));
-    }
+        dispatcher = new SingleThreadedDispatcher(executorService);
 
-    @Override
-    public void connectionOpened(Connection connection) {
-        LOG.info("connection opened: ");
-        Peer peer = new Peer(executorService, connection);
-        peers.add(peer);
-        peer.listen();
-    }
+        serverStore = new ServerStore(dispatcher, executorService, new InetSocketAddress("localhost", serverPort));
+        peerStore = new PeerStore(dispatcher, executorService);
 
-    @Override
-    public void serverShutdown() {
-        LOG.info("server shutdown");
+        dispatcher.registerStore(new LogStore());
+        dispatcher.registerStore(serverStore);
+        dispatcher.registerStore(peerStore);
     }
 
     @Override
     public void start() throws ExecutionException, InterruptedException, IOException {
-        server.listen();
-        SocketAddress serverSocketAddress = server.getSocketAddress();
-        LOG.info("server started on port " + ((InetSocketAddress)serverSocketAddress).getPort());
+        serverStore.start();
+        dispatcher.start();
     }
 
     @Override
     public void shutdown() {
-        server.shutdown();
+        serverStore.shutdown();
+        dispatcher.shutdown();
         executorService.shutdown();
 
         try {
@@ -66,20 +60,8 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
         }
     }
 
-    private void send(String message) throws IOException {
-        byte[] data = message.getBytes();
-        Headers headers = new Headers(1, data.length);
-        DhtEvent event = new DhtEvent(headers, data);
-        peers.get(0).send(event);
-    }
-
-    private void connect(SocketAddress socketAddress) throws IOException, ExecutionException, InterruptedException {
-        AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open();
-        Future connectFuture = socketChannel.connect(socketAddress);
-        connectFuture.get();
-        Connection connection = new AsyncConnection(executorService, socketChannel);
-        Peer peer = new Peer(executorService, connection);
-        peers.add(peer);
+    private void connect(SocketAddress socketAddress) throws IOException {
+        peerStore.createPeer(socketAddress);
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
@@ -93,11 +75,8 @@ public class StabilizingDhtNode implements DhtNode, ServerDelegate {
             String[] cmdArgs = cmd.split("\\s");
             if(cmdArgs[0].equals("connect")) {
                 node.connect(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
-            } else {
-                node.send(cmd);
             }
         }
         node.shutdown();
     }
-
 }

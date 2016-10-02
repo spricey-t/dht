@@ -1,6 +1,7 @@
 package com.virohtus.dht.core.engine;
 
 import com.virohtus.dht.core.action.Action;
+import com.virohtus.dht.core.engine.store.Store;
 
 import java.util.List;
 

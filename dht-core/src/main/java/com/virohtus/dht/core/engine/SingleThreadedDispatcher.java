@@ -1,6 +1,7 @@
 package com.virohtus.dht.core.engine;
 
 import com.virohtus.dht.core.action.Action;
+import com.virohtus.dht.core.engine.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public class SingleThreadedDispatcher implements Dispatcher {
             while(!Thread.currentThread().isInterrupted()) {
                 try {
                     Action action = actionQueue.take();
+                    LOG.info("dispatching: " + action.getClass().getName());
                     listStores().forEach(store -> store.onAction(action));
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted when taking action from dispatch queue!");

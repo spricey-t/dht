@@ -31,6 +31,10 @@ public class Peer implements ConnectionDelegate {
         return id;
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public void listen() {
         connection.listen();
     }

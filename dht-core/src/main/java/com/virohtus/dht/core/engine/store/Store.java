@@ -1,4 +1,4 @@
-package com.virohtus.dht.core.engine;
+package com.virohtus.dht.core.engine.store;
 
 import com.virohtus.dht.core.action.Action;
 
