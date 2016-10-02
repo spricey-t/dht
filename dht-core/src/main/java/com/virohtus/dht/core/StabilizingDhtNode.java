@@ -51,14 +51,21 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public void shutdown() {
         serverStore.shutdown();
+        peerStore.shutdown();
         dispatcher.shutdown();
         executorService.shutdown();
 
         try {
             executorService.awaitTermination(SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+            LOG.warn("reached shutdown timeout. forcing shutdown...");
             executorService.shutdownNow();
         }
+    }
+
+    @Override
+    public void joinNetwork(SocketAddress socketAddress) {
+
     }
 
     private void connect(SocketAddress socketAddress) throws IOException {

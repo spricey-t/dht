@@ -55,7 +55,6 @@ public class Peer implements ConnectionDelegate {
 
     public void shutdown() {
         connection.close();
-        dispatcher.dispatch(new PeerDisconnected(this));
     }
 
     @Override
@@ -72,7 +71,7 @@ public class Peer implements ConnectionDelegate {
 
     @Override
     public void listenerDisrupted() {
-        shutdown();
+        dispatcher.dispatch(new PeerDisconnected(this));
     }
 
     @Override

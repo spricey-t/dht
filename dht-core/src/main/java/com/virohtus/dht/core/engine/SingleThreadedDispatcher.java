@@ -79,6 +79,9 @@ public class SingleThreadedDispatcher implements Dispatcher {
         }
         synchronized (shutdownRequested) {
             shutdownRequested.set(true);
+            if(actionQueue.isEmpty()) {
+                worker.cancel(true);
+            }
         }
     }
 

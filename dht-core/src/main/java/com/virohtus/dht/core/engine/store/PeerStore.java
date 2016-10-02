@@ -3,6 +3,7 @@ package com.virohtus.dht.core.engine.store;
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.PeerConnected;
+import com.virohtus.dht.core.engine.action.PeerDisconnected;
 import com.virohtus.dht.core.engine.action.ServerShutdown;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
@@ -17,6 +18,7 @@ import java.net.SocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PeerStore implements Store {
 
@@ -24,16 +26,21 @@ public class PeerStore implements Store {
     private final Dispatcher dispatcher;
     private final ExecutorService executorService;
     private final Map<String, Peer> peers;
+    private final AtomicBoolean readyForShutdown;
 
     public PeerStore(Dispatcher dispatcher, ExecutorService executorService) {
         this.dispatcher = dispatcher;
         this.executorService = executorService;
         peers = new HashMap<>();
+        readyForShutdown = new AtomicBoolean(true);
     }
 
     public void addPeer(Peer peer) {
         synchronized (peers) {
             peers.put(peer.getId(), peer);
+        }
+        synchronized (readyForShutdown) {
+            readyForShutdown.set(false);
         }
     }
 
@@ -46,9 +53,18 @@ public class PeerStore implements Store {
         }
     }
 
-    public Peer removePeer(Peer peer) {
+    public void removePeer(Peer peer) {
         synchronized (peers) {
-            return peers.remove(peer);
+            if(!peers.containsKey(peer.getId())) {
+                return;
+            }
+            peers.remove(peer.getId());
+            if(peers.isEmpty()) {
+                synchronized (readyForShutdown) {
+                    readyForShutdown.set(true);
+                    readyForShutdown.notifyAll();
+                }
+            }
         }
     }
 
@@ -80,15 +96,24 @@ public class PeerStore implements Store {
         return peer;
     }
 
-    @Override
-    public void onAction(Action action) {
-        if(action instanceof ServerShutdown) {
-            handleServerShutdown((ServerShutdown)action);
+    public void shutdown() {
+        synchronized (readyForShutdown) {
+            listPeers().forEach(Peer::shutdown);
+            while(!readyForShutdown.get() && !Thread.currentThread().isInterrupted()) {
+                try {
+                    readyForShutdown.wait();
+                } catch (InterruptedException e) {
+                    LOG.warn("wait for PeerStore shutdown interrupted!");
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 
-    private void handleServerShutdown(ServerShutdown serverShutdown) {
-        LOG.info("closing down all connections");
-        clearPeers().forEach(Peer::shutdown);
+    @Override
+    public void onAction(Action action) {
+        if(action instanceof PeerDisconnected) {
+            removePeer(((PeerDisconnected)action).getPeer());
+        }
     }
 }
