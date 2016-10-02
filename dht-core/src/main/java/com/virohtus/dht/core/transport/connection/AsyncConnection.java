@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -55,7 +56,10 @@ public class AsyncConnection implements Connection {
                     }
                 }
             } catch (Exception e) {
-                LOG.info("receiver error: " + e);
+                Throwable cause = e.getCause();
+                if(cause == null || !(cause instanceof AsynchronousCloseException)){
+                    LOG.info("receiver error: " + e);
+                }
             } finally {
                 if(connectionDelegate != null) {
                     connectionDelegate.listenerDisrupted();

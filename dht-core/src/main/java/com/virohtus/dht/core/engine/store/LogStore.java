@@ -3,6 +3,7 @@ package com.virohtus.dht.core.engine.store;
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.action.PeerConnected;
 import com.virohtus.dht.core.engine.action.PeerDisconnected;
+import com.virohtus.dht.core.engine.action.ServerShutdown;
 import com.virohtus.dht.core.engine.action.ServerStarted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,10 @@ public class LogStore implements Store {
             } catch (IOException e) {
                 LOG.warn("could not get socket address for server! " + e);
             }
+        }
+
+        if(action instanceof ServerShutdown) {
+            LOG.info("server shutdown");
         }
 
         if(action instanceof PeerConnected) {

@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SingleThreadedDispatcher implements Dispatcher {
 
@@ -18,18 +19,24 @@ public class SingleThreadedDispatcher implements Dispatcher {
     private final ExecutorService executorService;
     private final List<Store> stores;
     private final BlockingQueue<Action> actionQueue;
+    private final AtomicBoolean shutdownRequested;
     private Future worker;
 
     public SingleThreadedDispatcher(ExecutorService executorService) {
         this.executorService = executorService;
         stores = new ArrayList<>();
         actionQueue = new LinkedBlockingQueue<>();
+        shutdownRequested = new AtomicBoolean(false);
     }
 
     @Override
     public void dispatch(Action action) {
         try {
-            actionQueue.put(action);
+            synchronized (shutdownRequested) {
+                if(!shutdownRequested.get()) {
+                    actionQueue.put(action);
+                }
+            }
         } catch (InterruptedException e) {
             LOG.warn("interrupted when adding action to dispatch queue!");
             Thread.currentThread().interrupt();
@@ -41,9 +48,17 @@ public class SingleThreadedDispatcher implements Dispatcher {
         if(isAlive()) {
             return;
         }
+        synchronized (shutdownRequested) {
+            shutdownRequested.set(false);
+        }
         worker = executorService.submit(() -> {
             LOG.info("dispatcher started");
             while(!Thread.currentThread().isInterrupted()) {
+                synchronized (shutdownRequested) {
+                    if(shutdownRequested.get() && actionQueue.isEmpty()) {
+                        break;
+                    }
+                }
                 try {
                     Action action = actionQueue.take();
                     LOG.info("dispatching: " + action.getClass().getName());
@@ -62,7 +77,9 @@ public class SingleThreadedDispatcher implements Dispatcher {
         if(!isAlive()) {
             return;
         }
-        worker.cancel(true);
+        synchronized (shutdownRequested) {
+            shutdownRequested.set(true);
+        }
     }
 
     @Override
