@@ -12,6 +12,11 @@ public abstract class TransportableAction extends Action implements Transportabl
 
     public abstract int getType();
 
+    public TransportableAction() {}
+    public TransportableAction(byte[] data) throws IOException {
+        deserialize(data);
+    }
+
     @Override
     public final byte[] serialize() throws IOException {
         try (
