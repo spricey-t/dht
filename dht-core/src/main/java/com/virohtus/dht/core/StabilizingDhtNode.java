@@ -33,12 +33,13 @@ public class StabilizingDhtNode implements DhtNode {
         executorService = Executors.newCachedThreadPool();
         dispatcher = new SingleThreadedDispatcher(executorService);
 
-        serverStore = new ServerStore(dispatcher, executorService, new InetSocketAddress("localhost", serverPort));
         peerStore = new PeerStore(dispatcher, executorService);
+        serverStore = new ServerStore(dispatcher, executorService,
+                peerStore, new InetSocketAddress("localhost", serverPort));
 
         dispatcher.registerStore(new LogStore());
-        dispatcher.registerStore(serverStore);
         dispatcher.registerStore(peerStore);
+        dispatcher.registerStore(serverStore);
     }
 
     @Override

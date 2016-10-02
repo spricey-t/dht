@@ -3,6 +3,7 @@ package com.virohtus.dht.core.engine.store;
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.ServerStarted;
+import com.virohtus.dht.core.peer.PeerType;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.server.AsyncServer;
 import com.virohtus.dht.core.transport.server.Server;
@@ -18,11 +19,13 @@ public class ServerStore implements Store, ServerDelegate {
     private final Dispatcher dispatcher;
     private final ExecutorService executorService;
     private final Server server;
+    private final PeerStore peerStore;
 
     public ServerStore(Dispatcher dispatcher, ExecutorService executorService,
-                       SocketAddress socketAddress) throws IOException {
+                       PeerStore peerStore, SocketAddress socketAddress) throws IOException {
         this.dispatcher = dispatcher;
         this.executorService = executorService;
+        this.peerStore = peerStore;
         server = new AsyncServer(this, executorService, socketAddress);
     }
 
@@ -47,7 +50,7 @@ public class ServerStore implements Store, ServerDelegate {
 
     @Override
     public void connectionOpened(Connection connection) {
-
+        peerStore.createPeer(connection, PeerType.INCOMING);
     }
 
     @Override

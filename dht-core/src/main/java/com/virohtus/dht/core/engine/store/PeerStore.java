@@ -1,12 +1,11 @@
 package com.virohtus.dht.core.engine.store;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.PeerConnected;
-import com.virohtus.dht.core.engine.store.Store;
 import com.virohtus.dht.core.peer.Peer;
 import com.virohtus.dht.core.peer.PeerNotFoundException;
+import com.virohtus.dht.core.peer.PeerType;
 import com.virohtus.dht.core.transport.connection.AsyncConnection;
 import com.virohtus.dht.core.transport.connection.Connection;
 
@@ -47,11 +46,13 @@ public class PeerStore implements Store {
     public Peer createPeer(SocketAddress socketAddress) throws IOException {
         AsynchronousSocketChannel socketChannel = AsynchronousSocketChannel.open();
         socketChannel.connect(socketAddress);
-        return createPeer(new AsyncConnection(executorService, socketChannel));
+        return createPeer(new AsyncConnection(executorService, socketChannel), PeerType.OUTGOING);
     }
 
-    public Peer createPeer(Connection connection) {
-        Peer peer = new Peer(executorService, connection);
+    public Peer createPeer(Connection connection, PeerType peerType) {
+        Peer peer = new Peer(dispatcher, executorService, peerType, connection);
+        addPeer(peer);
+        peer.listen();
         dispatcher.dispatch(new PeerConnected(peer));
         return peer;
     }

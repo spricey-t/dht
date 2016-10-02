@@ -2,6 +2,7 @@ package com.virohtus.dht.core.engine.store;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.action.PeerConnected;
+import com.virohtus.dht.core.engine.action.PeerDisconnected;
 import com.virohtus.dht.core.engine.action.ServerStarted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,10 @@ public class LogStore implements Store {
 
         if(action instanceof PeerConnected) {
             LOG.info("peer connected: " + ((PeerConnected)action).getPeer());
+        }
+
+        if(action instanceof PeerDisconnected) {
+            LOG.info("peer disconnected " + ((PeerDisconnected)action).getPeer());
         }
     }
 }

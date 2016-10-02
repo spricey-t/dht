@@ -2,6 +2,8 @@ package com.virohtus.dht.core.peer;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.action.ActionFactory;
+import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.action.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
@@ -16,19 +18,27 @@ public class Peer implements ConnectionDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Peer.class);
     private final String id;
+    private final PeerType type;
+    private final Dispatcher dispatcher;
     private final ExecutorService executorService;
     private final Connection connection;
     private final ActionFactory actionFactory = ActionFactory.getInstance();
 
-    public Peer(ExecutorService executorService, Connection connection) {
+    public Peer(Dispatcher dispatcher, ExecutorService executorService, PeerType type, Connection connection) {
         id = new IdService().generateId();
+        this.dispatcher = dispatcher;
         this.executorService = executorService;
+        this.type = type;
         this.connection = connection;
         connection.setConnectionDelegate(this);
     }
 
     public String getId() {
         return id;
+    }
+
+    public PeerType getType() {
+        return type;
     }
 
     public Connection getConnection() {
@@ -45,14 +55,14 @@ public class Peer implements ConnectionDelegate {
 
     public void shutdown() {
         connection.close();
-        // todo dispatch
+        dispatcher.dispatch(new PeerDisconnected(this));
     }
 
     @Override
     public void dataReceived(DhtEvent event) {
         try {
             Action action = actionFactory.createAction(event);
-            // todo send to dispatcher
+            dispatcher.dispatch(action);
         } catch (IOException e) {
             LOG.warn("receive failure: " + e.getMessage());
             shutdown();
@@ -63,5 +73,10 @@ public class Peer implements ConnectionDelegate {
     @Override
     public void listenerDisrupted() {
         shutdown();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("peerId: %s type: %s", id, type);
     }
 }
