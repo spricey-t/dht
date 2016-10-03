@@ -1,7 +1,9 @@
 package com.virohtus.dht.core.action;
 
+import com.virohtus.dht.core.engine.action.network.JoinNetworkRequest;
 import com.virohtus.dht.core.transport.io.DhtInputStream;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
+import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,6 +28,7 @@ public class ActionFactory {
         }
 
         switch (type) {
+            case DhtProtocol.JOIN_NETWORK_REQUEST: return new JoinNetworkRequest(event);
         }
 
         throw new IOException("unsupported TransportableAction type: " + type);

@@ -52,4 +52,20 @@ public abstract class TransportableAction extends Action implements Transportabl
                     "unmatched TransportableAction types! expected: " + getType() + " received: " + type);
         }
     }
+
+    @Override
+    public int hashCode() {
+        int result = getType();
+        result = 31 * result;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof TransportableAction)) {
+            return false;
+        }
+        TransportableAction that = (TransportableAction) obj;
+        return this.getType() == that.getType();
+    }
 }

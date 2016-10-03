@@ -57,6 +57,10 @@ public class Peer implements ConnectionDelegate {
         connection.close();
     }
 
+    public boolean isListening() {
+        return connection.isListening();
+    }
+
     @Override
     public void dataReceived(DhtEvent event) {
         try {
