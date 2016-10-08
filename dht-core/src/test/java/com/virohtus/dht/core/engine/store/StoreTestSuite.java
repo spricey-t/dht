@@ -5,6 +5,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+        PeerStoreTest.class,
         ServerStoreTest.class
 })
 public class StoreTestSuite {
