@@ -57,6 +57,10 @@ public class ServerStore implements Store, ServerDelegate {
         }
     }
 
+    public SocketAddress getSocketAddress() throws IOException {
+        return server.getSocketAddress();
+    }
+
     public boolean isAlive() {
         return server.isListening();
     }

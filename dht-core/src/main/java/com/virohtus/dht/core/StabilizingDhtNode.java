@@ -10,6 +10,7 @@ import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.AsyncConnection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.Headers;
+import com.virohtus.dht.core.util.IdService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +25,14 @@ public class StabilizingDhtNode implements DhtNode {
 
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNode.class);
     private static final int SHUTDOWN_TIMEOUT = 3; // seconds
+    private final String nodeId;
     private final ExecutorService executorService;
     private final Dispatcher dispatcher;
     private final ServerStore serverStore;
     private final PeerStore peerStore;
 
     public StabilizingDhtNode(int serverPort) throws IOException {
+        nodeId = new IdService().generateId();
         executorService = Executors.newCachedThreadPool();
         dispatcher = new SingleThreadedDispatcher(executorService);
 
@@ -66,6 +69,17 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public void joinNetwork(SocketAddress socketAddress) {
 
+    }
+
+    @Override
+    public NodeIdentity getNodeIdentity() {
+        SocketAddress socketAddress = null;
+        try {
+            socketAddress = serverStore.getSocketAddress();
+        } catch (IOException e) {
+            LOG.error("could not get socket address for dht server! " + e);
+        }
+        return new NodeIdentity(nodeId, socketAddress);
     }
 
     private void connect(SocketAddress socketAddress) throws IOException {

@@ -19,7 +19,7 @@
     </mvc:annotation-driven>
 
     <!-- Custom Object Mapper -->
-    <bean id="dhtObjectMapper" class="com.virohtus.dht.rest.serialize.DhtObjectMapper"/>
+    <bean id="dhtObjectMapper" class="com.virohtus.dht.rest.DhtObjectMapper"/>
 
     <bean id="restExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool">
     </bean>
