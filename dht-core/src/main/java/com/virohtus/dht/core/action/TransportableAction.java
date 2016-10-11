@@ -1,5 +1,6 @@
 package com.virohtus.dht.core.action;
 
+import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.transport.io.DhtInputStream;
 import com.virohtus.dht.core.transport.io.DhtOutputStream;
 import com.virohtus.dht.core.transport.protocol.Transportable;
@@ -10,11 +11,25 @@ import java.io.IOException;
 
 public abstract class TransportableAction extends Action implements Transportable, Wireable {
 
-    public abstract int getType();
+    private Peer sourcePeer;
 
     public TransportableAction() {}
     public TransportableAction(byte[] data) throws IOException {
         deserialize(data);
+    }
+
+    public abstract int getType();
+
+    public final Peer getSourcePeer() {
+        return sourcePeer;
+    }
+
+    public final void setSourcePeer(Peer sourcePeer) {
+        this.sourcePeer = sourcePeer;
+    }
+
+    public final boolean hasSourcePeer() {
+        return sourcePeer != null;
     }
 
     @Override

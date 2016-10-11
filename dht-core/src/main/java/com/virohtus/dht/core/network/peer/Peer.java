@@ -1,9 +1,9 @@
-package com.virohtus.dht.core.peer;
+package com.virohtus.dht.core.network.peer;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.action.ActionFactory;
 import com.virohtus.dht.core.engine.Dispatcher;
-import com.virohtus.dht.core.engine.action.PeerDisconnected;
+import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;

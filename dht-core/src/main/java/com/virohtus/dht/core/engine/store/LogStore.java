@@ -1,10 +1,10 @@
 package com.virohtus.dht.core.engine.store;
 
 import com.virohtus.dht.core.action.Action;
-import com.virohtus.dht.core.engine.action.PeerConnected;
-import com.virohtus.dht.core.engine.action.PeerDisconnected;
-import com.virohtus.dht.core.engine.action.ServerShutdown;
-import com.virohtus.dht.core.engine.action.ServerStarted;
+import com.virohtus.dht.core.engine.action.peer.PeerConnected;
+import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
+import com.virohtus.dht.core.engine.action.server.ServerShutdown;
+import com.virohtus.dht.core.engine.action.server.ServerStarted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

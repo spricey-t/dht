@@ -1,4 +1,4 @@
-package com.virohtus.dht.core.peer;
+package com.virohtus.dht.core.network.peer;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

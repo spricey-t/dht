@@ -9,4 +9,7 @@ public interface DhtProtocol {
 
     int JOIN_NETWORK_REQUEST = 1;
     int JOIN_NETWORK_RESPONSE = 2;
+
+    int GET_NODE_IDENTITY_REQUEST = 3;
+    int GET_NODE_IDENTITY_RESPONSE = 4;
 }

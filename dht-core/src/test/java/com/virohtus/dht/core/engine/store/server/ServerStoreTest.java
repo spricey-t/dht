@@ -1,10 +1,12 @@
-package com.virohtus.dht.core.engine.store;
+package com.virohtus.dht.core.engine.store.server;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
-import com.virohtus.dht.core.engine.action.ServerShutdown;
-import com.virohtus.dht.core.engine.action.ServerStarted;
-import com.virohtus.dht.core.peer.PeerType;
+import com.virohtus.dht.core.engine.action.server.ServerShutdown;
+import com.virohtus.dht.core.engine.action.server.ServerStarted;
+import com.virohtus.dht.core.engine.store.Store;
+import com.virohtus.dht.core.engine.store.peer.PeerStore;
+import com.virohtus.dht.core.network.peer.PeerType;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.server.ServerDelegate;
 import org.junit.AfterClass;

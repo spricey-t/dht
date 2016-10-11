@@ -1,7 +1,7 @@
-package com.virohtus.dht.core.engine.action;
+package com.virohtus.dht.core.engine.action.peer;
 
 import com.virohtus.dht.core.action.Action;
-import com.virohtus.dht.core.peer.Peer;
+import com.virohtus.dht.core.network.peer.Peer;
 
 public class PeerDisconnected extends Action {
 

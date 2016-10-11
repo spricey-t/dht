@@ -1,16 +1,15 @@
-package com.virohtus.dht.core.engine.store;
+package com.virohtus.dht.core.engine.store.peer;
 
 import com.virohtus.dht.core.engine.Dispatcher;
-import com.virohtus.dht.core.engine.action.PeerDisconnected;
-import com.virohtus.dht.core.peer.Peer;
-import com.virohtus.dht.core.peer.PeerNotFoundException;
-import com.virohtus.dht.core.peer.PeerType;
+import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
+import com.virohtus.dht.core.network.peer.Peer;
+import com.virohtus.dht.core.network.peer.PeerNotFoundException;
+import com.virohtus.dht.core.network.peer.PeerType;
 import com.virohtus.dht.core.transport.connection.Connection;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;

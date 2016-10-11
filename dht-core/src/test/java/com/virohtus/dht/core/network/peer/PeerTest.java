@@ -1,8 +1,8 @@
-package com.virohtus.dht.core.peer;
+package com.virohtus.dht.core.network.peer;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
-import com.virohtus.dht.core.engine.action.PeerDisconnected;
+import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.engine.action.network.JoinNetworkRequest;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
@@ -13,7 +13,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;

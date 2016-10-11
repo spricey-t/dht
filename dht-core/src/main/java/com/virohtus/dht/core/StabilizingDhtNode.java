@@ -2,14 +2,11 @@ package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.store.LogStore;
-import com.virohtus.dht.core.engine.store.ServerStore;
+import com.virohtus.dht.core.engine.store.network.NodeIdentityStore;
+import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
-import com.virohtus.dht.core.peer.Peer;
-import com.virohtus.dht.core.engine.store.PeerStore;
-import com.virohtus.dht.core.transport.connection.Connection;
-import com.virohtus.dht.core.transport.connection.AsyncConnection;
-import com.virohtus.dht.core.transport.protocol.DhtEvent;
-import com.virohtus.dht.core.transport.protocol.Headers;
+import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.util.IdService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.channels.AsynchronousSocketChannel;
 import java.util.Scanner;
 import java.util.concurrent.*;
 
@@ -43,6 +39,7 @@ public class StabilizingDhtNode implements DhtNode {
         dispatcher.registerStore(new LogStore());
         dispatcher.registerStore(peerStore);
         dispatcher.registerStore(serverStore);
+        dispatcher.registerStore(new NodeIdentityStore(this));
     }
 
     @Override
