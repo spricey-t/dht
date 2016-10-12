@@ -4,6 +4,7 @@ import com.virohtus.dht.core.action.TransportableAction;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.transport.io.DhtInputStream;
 import com.virohtus.dht.core.transport.io.DhtOutputStream;
+import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 
 import java.io.IOException;
@@ -16,8 +17,8 @@ public class GetNodeIdentityResponse extends TransportableAction {
         this.nodeIdentity = nodeIdentity;
     }
 
-    public GetNodeIdentityResponse(byte[] data) throws IOException {
-        super(data);
+    public GetNodeIdentityResponse(DhtEvent dhtEvent) throws IOException {
+        super(dhtEvent);
     }
 
     @Override

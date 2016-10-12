@@ -28,7 +28,7 @@ public class TransportableActionTest {
     public void testSerializeDeserialize() throws IOException {
         JoinNetworkRequest joinNetworkRequest = new JoinNetworkRequest();
         byte[] data = joinNetworkRequest.serialize();
-        Action reserialized = actionFactory.createAction(new DhtEvent(data));
+        Action reserialized = actionFactory.createTransportableAction(new DhtEvent(data));
         Assert.assertEquals(joinNetworkRequest, reserialized);
     }
 

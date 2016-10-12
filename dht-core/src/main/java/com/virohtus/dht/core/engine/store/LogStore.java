@@ -1,10 +1,12 @@
 package com.virohtus.dht.core.engine.store;
 
 import com.virohtus.dht.core.action.Action;
+import com.virohtus.dht.core.action.TransportableAction;
 import com.virohtus.dht.core.engine.action.peer.PeerConnected;
 import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.engine.action.server.ServerShutdown;
 import com.virohtus.dht.core.engine.action.server.ServerStarted;
+import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,18 @@ public class LogStore implements Store {
 
         if(action instanceof PeerDisconnected) {
             LOG.info("peer disconnected " + ((PeerDisconnected)action).getPeer());
+        }
+
+        if(action instanceof TransportableAction) {
+            TransportableAction transportableAction = (TransportableAction)action;
+            switch (transportableAction.getType()) {
+                case DhtProtocol.GET_NODE_IDENTITY_REQUEST:
+                    LOG.info("received node identity request");
+                    break;
+                case DhtProtocol.GET_NODE_IDENTITY_RESPONSE:
+                    LOG.info("received node identity response");
+                    break;
+            }
         }
     }
 }

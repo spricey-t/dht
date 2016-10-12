@@ -5,7 +5,6 @@ import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
 import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.store.Store;
-import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ public class NodeIdentityStore implements Store {
         }
         try {
             GetNodeIdentityResponse response = new GetNodeIdentityResponse(dhtNode.getNodeIdentity());
-            request.getSourcePeer().send(new DhtEvent(response.serialize()));
+            request.getSourcePeer().send(response.serialize());
         } catch (IOException e) {
             LOG.error("failed to send GetNodeIdentityResponse to peer: " + request.getSourcePeer().getId());
         }

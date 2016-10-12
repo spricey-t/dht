@@ -2,6 +2,7 @@ package com.virohtus.dht.core.network.peer;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.action.ActionFactory;
+import com.virohtus.dht.core.action.TransportableAction;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.Connection;
@@ -49,6 +50,10 @@ public class Peer implements ConnectionDelegate {
         connection.listen();
     }
 
+    public void send(byte[] data) throws IOException {
+        send(new DhtEvent(data));
+    }
+
     public void send(DhtEvent data) throws IOException {
         connection.send(data);
     }
@@ -64,7 +69,8 @@ public class Peer implements ConnectionDelegate {
     @Override
     public void dataReceived(DhtEvent event) {
         try {
-            Action action = actionFactory.createAction(event);
+            TransportableAction action = actionFactory.createTransportableAction(event);
+            action.setSourcePeer(this);
             dispatcher.dispatch(action);
         } catch (IOException e) {
             LOG.warn("receive failure: " + e.getMessage());

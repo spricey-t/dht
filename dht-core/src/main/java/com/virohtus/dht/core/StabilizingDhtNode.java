@@ -1,12 +1,14 @@
 package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
 import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.network.NodeIdentityStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
+import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.util.IdService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +82,8 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     private void connect(SocketAddress socketAddress) throws IOException {
-        peerStore.createPeer(socketAddress);
+        Peer peer = peerStore.createPeer(socketAddress);
+        peer.send(new GetNodeIdentityRequest().serialize());
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {

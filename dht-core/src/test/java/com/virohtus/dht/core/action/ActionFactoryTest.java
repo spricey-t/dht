@@ -13,12 +13,12 @@ public class ActionFactoryTest {
     public void testCreateUnsupportedAction() throws IOException {
         byte[] actionData = {0, 0, 0, -1};
         DhtEvent dhtEvent = new DhtEvent(actionData);
-        actionFactory.createAction(dhtEvent);
+        actionFactory.createTransportableAction(dhtEvent);
     }
 
     @Test(expected = IOException.class)
     public void testCreateNoData() throws IOException {
         DhtEvent dhtEvent = new DhtEvent(new byte[0]);
-        actionFactory.createAction(dhtEvent);
+        actionFactory.createTransportableAction(dhtEvent);
     }
 }

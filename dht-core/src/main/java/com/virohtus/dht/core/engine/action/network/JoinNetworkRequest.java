@@ -12,7 +12,7 @@ public class JoinNetworkRequest extends TransportableAction {
     }
 
     public JoinNetworkRequest(DhtEvent event) throws IOException {
-        super(event.getBytes());
+        super(event);
     }
 
     @Override
