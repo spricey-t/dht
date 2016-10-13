@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeoutException;
 
 public class NetworkStore implements Store {
 
@@ -28,7 +29,7 @@ public class NetworkStore implements Store {
         this.peerStore = peerStore;
     }
 
-    public void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException {
+    public void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException, TimeoutException {
         Peer peer = peerStore.createPeer(socketAddress);
         JoinNetworkResponse response = peer.sendRequest(new JoinNetworkRequest(), JoinNetworkResponse.class).get();
     }
