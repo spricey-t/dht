@@ -5,7 +5,6 @@ import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
 import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.network.NetworkStore;
-import com.virohtus.dht.core.engine.store.network.NodeIdentityStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
 import com.virohtus.dht.core.network.NodeIdentity;
@@ -39,14 +38,12 @@ public class StabilizingDhtNode implements DhtNode {
         dispatcher = new SingleThreadedDispatcher(executorService);
 
         peerStore = new PeerStore(dispatcher, executorService);
-        serverStore = new ServerStore(dispatcher, executorService,
-                peerStore, new InetSocketAddress(serverPort));
-        networkStore = new NetworkStore(peerStore);
+        serverStore = new ServerStore(dispatcher, executorService, peerStore, new InetSocketAddress(serverPort));
+        networkStore = new NetworkStore(this, peerStore);
 
         dispatcher.registerStore(new LogStore());
         dispatcher.registerStore(peerStore);
         dispatcher.registerStore(serverStore);
-        dispatcher.registerStore(new NodeIdentityStore(this));
         dispatcher.registerStore(networkStore);
     }
 
@@ -72,7 +69,7 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public void joinNetwork(SocketAddress socketAddress) throws IOException {
+    public void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException {
         networkStore.joinNetwork(socketAddress);
     }
 

@@ -9,6 +9,6 @@ import java.util.concurrent.ExecutionException;
 public interface DhtNode {
     void start() throws ExecutionException, InterruptedException, IOException;
     void shutdown();
-    void joinNetwork(SocketAddress socketAddress) throws IOException;
+    void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException;
     NodeIdentity getNodeIdentity();
 }
