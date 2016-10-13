@@ -2,7 +2,9 @@ package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.store.LogStore;
+import com.virohtus.dht.core.engine.store.network.NetworkStore;
 import com.virohtus.dht.core.engine.store.network.NodeIdentityStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
@@ -10,6 +12,7 @@ import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.util.IdService;
+import com.virohtus.dht.core.util.Resolvable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +31,7 @@ public class StabilizingDhtNode implements DhtNode {
     private final Dispatcher dispatcher;
     private final ServerStore serverStore;
     private final PeerStore peerStore;
+    private final NetworkStore networkStore;
 
     public StabilizingDhtNode(int serverPort) throws IOException {
         nodeId = new IdService().generateId();
@@ -36,12 +40,14 @@ public class StabilizingDhtNode implements DhtNode {
 
         peerStore = new PeerStore(dispatcher, executorService);
         serverStore = new ServerStore(dispatcher, executorService,
-                peerStore, new InetSocketAddress("localhost", serverPort));
+                peerStore, new InetSocketAddress(serverPort));
+        networkStore = new NetworkStore(peerStore);
 
         dispatcher.registerStore(new LogStore());
         dispatcher.registerStore(peerStore);
         dispatcher.registerStore(serverStore);
         dispatcher.registerStore(new NodeIdentityStore(this));
+        dispatcher.registerStore(networkStore);
     }
 
     @Override
@@ -66,8 +72,8 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public void joinNetwork(SocketAddress socketAddress) {
-
+    public void joinNetwork(SocketAddress socketAddress) throws IOException {
+        networkStore.joinNetwork(socketAddress);
     }
 
     @Override
@@ -83,7 +89,13 @@ public class StabilizingDhtNode implements DhtNode {
 
     private void connect(SocketAddress socketAddress) throws IOException {
         Peer peer = peerStore.createPeer(socketAddress);
-        peer.send(new GetNodeIdentityRequest().serialize());
+        Resolvable<GetNodeIdentityResponse> responseResolvable = peer.sendRequest(new GetNodeIdentityRequest(), GetNodeIdentityResponse.class);
+        try {
+            GetNodeIdentityResponse response = responseResolvable.get();
+            LOG.info("RECEIVED IT YOOOOOO");
+        } catch (InterruptedException e) {
+            LOG.error("timed out waiting for GetNodeIdentityResponse");
+        }
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {

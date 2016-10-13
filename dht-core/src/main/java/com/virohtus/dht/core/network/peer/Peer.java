@@ -1,19 +1,23 @@
 package com.virohtus.dht.core.network.peer;
 
-import com.virohtus.dht.core.action.Action;
-import com.virohtus.dht.core.action.ActionFactory;
-import com.virohtus.dht.core.action.TransportableAction;
+import com.virohtus.dht.core.action.*;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
+import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 import com.virohtus.dht.core.util.IdService;
+import com.virohtus.dht.core.util.Resolvable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 public class Peer implements ConnectionDelegate {
 
@@ -24,6 +28,7 @@ public class Peer implements ConnectionDelegate {
     private final ExecutorService executorService;
     private final Connection connection;
     private final ActionFactory actionFactory = ActionFactory.getInstance();
+    private final Map<String, Resolvable<ResponseAction>> pendingRequests;
 
     public Peer(Dispatcher dispatcher, ExecutorService executorService, PeerType type, Connection connection) {
         id = new IdService().generateId();
@@ -31,6 +36,7 @@ public class Peer implements ConnectionDelegate {
         this.executorService = executorService;
         this.type = type;
         this.connection = connection;
+        this.pendingRequests = new HashMap<>();
         connection.setConnectionDelegate(this);
     }
 
@@ -58,6 +64,18 @@ public class Peer implements ConnectionDelegate {
         connection.send(data);
     }
 
+    public <T extends ResponseAction> Resolvable<T> sendRequest(RequestAction requestAction, Class<T> responseClass) throws IOException {
+        synchronized (pendingRequests) {
+            send(requestAction.serialize());
+            pendingRequests.put(requestAction.getRequestId(), new Resolvable<>(DhtProtocol.REQUEST_TIMEOUT));
+        }
+        Resolvable<ResponseAction> responseResolvable;
+        synchronized (pendingRequests) {
+            responseResolvable = pendingRequests.get(requestAction.getRequestId());
+        }
+        return (Resolvable<T>) responseResolvable;
+    }
+
     public void shutdown() {
         connection.close();
     }
@@ -71,7 +89,21 @@ public class Peer implements ConnectionDelegate {
         try {
             TransportableAction action = actionFactory.createTransportableAction(event);
             action.setSourcePeer(this);
-            dispatcher.dispatch(action);
+
+            if(action instanceof ResponseAction) {
+                ResponseAction responseAction = (ResponseAction) action;
+                Resolvable<ResponseAction> responseResolvable;
+                synchronized (pendingRequests) {
+                    responseResolvable = pendingRequests.remove(responseAction.getRequestId());
+                }
+                if(responseResolvable != null) {
+                    responseResolvable.resolve(responseAction);
+                } else {
+                    LOG.warn("received ResponseAction without a tracked request!");
+                }
+            } else {
+                dispatcher.dispatch(action);
+            }
         } catch (IOException e) {
             LOG.warn("receive failure: " + e.getMessage());
             shutdown();

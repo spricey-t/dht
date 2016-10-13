@@ -1,5 +1,6 @@
 package com.virohtus.dht.core.engine.action.network;
 
+import com.virohtus.dht.core.action.ResponseAction;
 import com.virohtus.dht.core.action.TransportableAction;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.transport.io.DhtInputStream;
@@ -9,11 +10,12 @@ import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 
 import java.io.IOException;
 
-public class GetNodeIdentityResponse extends TransportableAction {
+public class GetNodeIdentityResponse extends ResponseAction {
 
     private NodeIdentity nodeIdentity;
 
-    public GetNodeIdentityResponse(NodeIdentity nodeIdentity) {
+    public GetNodeIdentityResponse(String requestId, NodeIdentity nodeIdentity) {
+        super(requestId);
         this.nodeIdentity = nodeIdentity;
     }
 

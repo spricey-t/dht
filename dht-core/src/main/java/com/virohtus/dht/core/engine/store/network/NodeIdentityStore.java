@@ -33,7 +33,7 @@ public class NodeIdentityStore implements Store {
             return;
         }
         try {
-            GetNodeIdentityResponse response = new GetNodeIdentityResponse(dhtNode.getNodeIdentity());
+            GetNodeIdentityResponse response = new GetNodeIdentityResponse(request.getRequestId(), dhtNode.getNodeIdentity());
             request.getSourcePeer().send(response.serialize());
         } catch (IOException e) {
             LOG.error("failed to send GetNodeIdentityResponse to peer: " + request.getSourcePeer().getId());

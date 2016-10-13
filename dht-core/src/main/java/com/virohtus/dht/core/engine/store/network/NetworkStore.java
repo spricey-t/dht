@@ -1,6 +1,7 @@
 package com.virohtus.dht.core.engine.store.network;
 
 import com.virohtus.dht.core.action.Action;
+import com.virohtus.dht.core.engine.action.network.JoinNetworkRequest;
 import com.virohtus.dht.core.engine.store.Store;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.peer.Peer;
@@ -18,6 +19,7 @@ public class NetworkStore implements Store {
 
     public void joinNetwork(SocketAddress socketAddress) throws IOException {
         Peer peer = peerStore.createPeer(socketAddress);
+        peer.send(new JoinNetworkRequest().serialize());
     }
 
     @Override
