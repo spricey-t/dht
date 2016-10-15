@@ -7,6 +7,9 @@ import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.network.NetworkStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
+import com.virohtus.dht.core.network.FingerTable;
+import com.virohtus.dht.core.network.Keyspace;
+import com.virohtus.dht.core.network.Node;
 import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.peer.Peer;
@@ -21,19 +24,21 @@ import java.net.SocketAddress;
 import java.util.Scanner;
 import java.util.concurrent.*;
 
-public class StabilizingDhtNode implements DhtNode {
+public class StabilizingDhtNodeManager implements DhtNodeManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNode.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNodeManager.class);
     private static final int SHUTDOWN_TIMEOUT = 3; // seconds
     private final String nodeId;
+    private final Node node;
     private final ExecutorService executorService;
     private final Dispatcher dispatcher;
     private final ServerStore serverStore;
     private final PeerStore peerStore;
     private final NetworkStore networkStore;
 
-    public StabilizingDhtNode(int serverPort) throws IOException {
+    public StabilizingDhtNodeManager(int serverPort) throws IOException {
         nodeId = new IdService().generateId();
+        node = new Node(new NodeIdentity(new IdService().generateId(), null), new Keyspace(), new FingerTable());
         executorService = Executors.newCachedThreadPool();
         dispatcher = new SingleThreadedDispatcher(executorService);
 
@@ -50,6 +55,7 @@ public class StabilizingDhtNode implements DhtNode {
     @Override
     public void start() throws ExecutionException, InterruptedException, IOException {
         serverStore.start();
+        node.getNodeIdentity().setSocketAddress(serverStore.getSocketAddress());
         dispatcher.start();
     }
 
@@ -74,14 +80,8 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     @Override
-    public NodeIdentity getNodeIdentity() {
-        SocketAddress socketAddress = null;
-        try {
-            socketAddress = serverStore.getSocketAddress();
-        } catch (IOException e) {
-            LOG.error("could not get socket address for dht server! " + e);
-        }
-        return new NodeIdentity(nodeId, socketAddress);
+    public Node getNode() {
+        return null;
     }
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {
@@ -91,7 +91,7 @@ public class StabilizingDhtNode implements DhtNode {
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
-        StabilizingDhtNode node = new StabilizingDhtNode(0);
+        StabilizingDhtNodeManager node = new StabilizingDhtNodeManager(0);
         try {
             node.start();
 
