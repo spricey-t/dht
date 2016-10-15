@@ -3,13 +3,12 @@ package com.virohtus.dht.core.engine.store.network;
 import com.virohtus.dht.core.DhtNodeManager;
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.action.TransportableAction;
-import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
-import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
-import com.virohtus.dht.core.engine.action.network.JoinNetworkRequest;
-import com.virohtus.dht.core.engine.action.network.JoinNetworkResponse;
+import com.virohtus.dht.core.engine.action.network.*;
 import com.virohtus.dht.core.engine.store.Store;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.FingerTable;
+import com.virohtus.dht.core.network.Keyspace;
+import com.virohtus.dht.core.network.Node;
 import com.virohtus.dht.core.network.NodeNetwork;
 import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.transport.protocol.DhtProtocol;
@@ -37,6 +36,18 @@ public class NetworkStore implements Store {
         Peer peer = peerStore.createPeer(socketAddress);
         JoinNetworkResponse response = peer.sendRequest(new JoinNetworkRequest(dhtNodeManager.getNode()),
                 JoinNetworkResponse.class).get();
+
+        Node successorNode = response.getNode();
+        FingerTable successorFingerTable = successorNode.getFingerTable();
+        Node thisNode = dhtNodeManager.getNode();
+        thisNode.setKeyspace(successorFingerTable.getPredecessor().getKeyspace());
+        thisNode.getFingerTable().addSuccessor(response.getNode());
+
+        if(successorFingerTable.hasSuccessors() &&
+                successorFingerTable.getSuccessors().get(0).getNodeIdentity().equals(thisNode.getNodeIdentity())) {
+            thisNode.getFingerTable().setPredecessor(successorNode);
+        }
+        LOG.info("successfully joined network");
     }
 
     @Override
@@ -59,11 +70,23 @@ public class NetworkStore implements Store {
             LOG.error("received JoinNetworkRequest from null peer!");
             return;
         }
+        Node predecessor = request.getNode();
         FingerTable fingerTable = dhtNodeManager.getNode().getFingerTable();
-        fingerTable.setPredecessor(request.getNode());
+        fingerTable.setPredecessor(predecessor);
+        Keyspace lowersplit = dhtNodeManager.getNode().getKeyspace().split();
+        if(predecessor.getKeyspace().isDefaultKeyspace()) {
+            predecessor.setKeyspace(lowersplit);
+        } else {
+            predecessor.getKeyspace().merge(lowersplit);
+        }
 
         if(!fingerTable.hasSuccessors()) {
-
+            fingerTable.addSuccessor(predecessor);
+        }
+        try {
+            request.getSourcePeer().send(new JoinNetworkResponse(request.getRequestId(), dhtNodeManager.getNode()).serialize());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

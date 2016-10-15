@@ -20,6 +20,11 @@ public class FingerTable implements Wireable {
         predecessor = null;
     }
 
+    public FingerTable(DhtInputStream inputStream) throws IOException {
+        this();
+        fromWire(inputStream);
+    }
+
     public Node getPredecessor() {
         synchronized (predecessorLock) {
             return predecessor;
@@ -41,6 +46,12 @@ public class FingerTable implements Wireable {
     public boolean hasSuccessors() {
         synchronized (successors) {
             return !successors.isEmpty();
+        }
+    }
+
+    public void addSuccessor(Node successor) {
+        synchronized (successors) {
+            successors.add(successor);
         }
     }
 

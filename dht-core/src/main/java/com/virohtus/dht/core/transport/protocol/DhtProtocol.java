@@ -6,6 +6,7 @@ public interface DhtProtocol {
     String STRING_ENCODING = "UTF-8";
     int HEADER_SIZE = 8;
     int REQUEST_TIMEOUT = 10000;
+    int GLOBAL_KEYSPACE = Integer.MAX_VALUE;
 
 
     int JOIN_NETWORK_REQUEST = 1;

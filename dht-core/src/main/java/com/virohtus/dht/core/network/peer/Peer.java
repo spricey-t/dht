@@ -97,7 +97,7 @@ public class Peer implements ConnectionDelegate {
                     responseResolvable = pendingRequests.remove(responseAction.getRequestId());
                 }
                 if(responseResolvable != null) {
-//                    responseResolvable.resolve(responseAction);
+                    responseResolvable.resolve(responseAction);
                 } else {
                     LOG.warn("received ResponseAction without a tracked request!");
                 }

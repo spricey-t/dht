@@ -99,7 +99,7 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
                 cmd = key.nextLine();
                 String[] cmdArgs = cmd.split("\\s");
                 if (cmdArgs[0].equals("connect")) {
-                    node.connect(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+                    node.joinNetwork(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
                 }
             }
         } finally {

@@ -30,6 +30,10 @@ public class Node implements Wireable {
         return keyspace;
     }
 
+    public void setKeyspace(Keyspace keyspace) {
+        this.keyspace = keyspace;
+    }
+
     public FingerTable getFingerTable() {
         return fingerTable;
     }
@@ -37,10 +41,14 @@ public class Node implements Wireable {
     @Override
     public void toWire(DhtOutputStream outputStream) throws IOException {
         nodeIdentity.toWire(outputStream);
+        keyspace.toWire(outputStream);
+        fingerTable.toWire(outputStream);
     }
 
     @Override
     public void fromWire(DhtInputStream inputStream) throws IOException {
-
+        nodeIdentity = new NodeIdentity(inputStream);
+        keyspace = new Keyspace(inputStream);
+        fingerTable = new FingerTable(inputStream);
     }
 }
