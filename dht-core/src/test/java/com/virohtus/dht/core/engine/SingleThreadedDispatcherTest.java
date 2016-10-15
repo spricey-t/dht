@@ -39,7 +39,7 @@ public class SingleThreadedDispatcherTest {
 
     @Test
     public void testDispatch() throws InterruptedException {
-        Action action = new JoinNetworkRequest();
+        Action action = Mockito.mock(Action.class);
         singleThreadedDispatcher.start();
         singleThreadedDispatcher.dispatch(action);
         Thread.sleep(200);
@@ -51,7 +51,7 @@ public class SingleThreadedDispatcherTest {
 
     @Test
     public void testDispatchNewStoreAdded() throws InterruptedException {
-        Action action = new JoinNetworkRequest();
+        Action action = Mockito.mock(Action.class);
         singleThreadedDispatcher.start();
         Store newStore = Mockito.mock(Store.class);
         singleThreadedDispatcher.registerStore(newStore);
@@ -65,7 +65,7 @@ public class SingleThreadedDispatcherTest {
 
     @Test
     public void testUnregisterStore() throws InterruptedException {
-        Action action = new JoinNetworkRequest();
+        Action action = Mockito.mock(Action.class);
         singleThreadedDispatcher.start();
         Store newStore = Mockito.mock(Store.class);
         singleThreadedDispatcher.registerStore(newStore);

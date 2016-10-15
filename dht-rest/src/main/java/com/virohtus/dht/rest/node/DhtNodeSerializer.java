@@ -14,7 +14,7 @@ public class DhtNodeSerializer extends JsonSerializer<DhtNodeManager> {
     public void serialize(DhtNodeManager dhtNodeManager, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
         jsonGenerator.writeStartObject();
 
-        jsonGenerator.writeObjectField("nodeIdentity", dhtNodeManager.getNodeIdentity());
+//        jsonGenerator.writeObjectField("nodeIdentity", dhtNodeManager.getNodeIdentity());
 
         jsonGenerator.writeEndObject();
     }

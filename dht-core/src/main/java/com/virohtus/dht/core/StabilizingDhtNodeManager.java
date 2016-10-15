@@ -28,7 +28,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNodeManager.class);
     private static final int SHUTDOWN_TIMEOUT = 3; // seconds
-    private final String nodeId;
     private final Node node;
     private final ExecutorService executorService;
     private final Dispatcher dispatcher;
@@ -37,7 +36,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
     private final NetworkStore networkStore;
 
     public StabilizingDhtNodeManager(int serverPort) throws IOException {
-        nodeId = new IdService().generateId();
         node = new Node(new NodeIdentity(new IdService().generateId(), null), new Keyspace(), new FingerTable());
         executorService = Executors.newCachedThreadPool();
         dispatcher = new SingleThreadedDispatcher(executorService);
@@ -81,7 +79,7 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     @Override
     public Node getNode() {
-        return null;
+        return node;
     }
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {

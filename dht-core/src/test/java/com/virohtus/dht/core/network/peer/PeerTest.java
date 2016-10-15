@@ -4,6 +4,10 @@ import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.engine.action.network.JoinNetworkRequest;
+import com.virohtus.dht.core.network.FingerTable;
+import com.virohtus.dht.core.network.Keyspace;
+import com.virohtus.dht.core.network.Node;
+import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import org.junit.Assert;
@@ -15,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -67,7 +72,8 @@ public class PeerTest {
 
     @Test
     public void testActionDispatchedOnReceive() throws IOException {
-        JoinNetworkRequest request = new JoinNetworkRequest();
+        Node node = new Node(new NodeIdentity("123", new InetSocketAddress(0)), new Keyspace(), new FingerTable());
+        JoinNetworkRequest request = new JoinNetworkRequest(node);
         DhtEvent event = new DhtEvent(request.serialize());
         peer.dataReceived(event);
         ArgumentCaptor<Action> actionCaptor = ArgumentCaptor.forClass(Action.class);
