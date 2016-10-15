@@ -24,12 +24,14 @@ public class AsyncConnection implements Connection {
     private final Object connectionDelegateLock;
     private ConnectionDelegate connectionDelegate;
     private Future listenerFuture;
+    private final Object writeLock;
 
     public AsyncConnection(ExecutorService executorService,
                            AsynchronousSocketChannel socketChannel) {
         this.executorService = executorService;
         this.socketChannel = socketChannel;
         this.connectionDelegateLock = new Object();
+        this.writeLock = new Object();
     }
 
     @Override
@@ -84,7 +86,13 @@ public class AsyncConnection implements Connection {
 
     @Override
     public void send(DhtEvent event) throws IOException {
-        socketChannel.write(ByteBuffer.wrap(event.getBytes()));
+        synchronized (writeLock) {
+            try {
+                socketChannel.write(ByteBuffer.wrap(event.getBytes())).get();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+        }
     }
 
     @Override
