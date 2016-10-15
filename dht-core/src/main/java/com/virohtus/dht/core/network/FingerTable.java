@@ -6,6 +6,7 @@ import com.virohtus.dht.core.transport.io.DhtOutputStream;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class FingerTable implements Wireable {
@@ -53,6 +54,30 @@ public class FingerTable implements Wireable {
         synchronized (successors) {
             successors.add(successor);
         }
+    }
+
+    public Node getImmediateSuccessor() {
+        synchronized (successors) {
+            if(!hasSuccessors()) {
+                return null;
+            }
+            return successors.get(0);
+        }
+    }
+
+    public Node removeSuccessor(NodeIdentity nodeIdentity) {
+        Node node = null;
+        synchronized (successors) {
+            Iterator<Node> nodeIterator = successors.iterator();
+            while(nodeIterator.hasNext()) {
+                Node n = nodeIterator.next();
+                if(n.getNodeIdentity().equals(nodeIdentity)) {
+                    nodeIterator.remove();
+                    node = n;
+                }
+            }
+        }
+        return node;
     }
 
     @Override

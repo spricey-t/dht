@@ -7,10 +7,7 @@ import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.network.NetworkStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
-import com.virohtus.dht.core.network.FingerTable;
-import com.virohtus.dht.core.network.Keyspace;
-import com.virohtus.dht.core.network.Node;
-import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.network.*;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.util.IdService;
@@ -80,6 +77,11 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
     @Override
     public Node getNode() {
         return node;
+    }
+
+    @Override
+    public Network getNetwork() {
+        return networkStore.getNetwork();
     }
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {

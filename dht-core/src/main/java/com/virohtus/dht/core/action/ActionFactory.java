@@ -1,9 +1,6 @@
 package com.virohtus.dht.core.action;
 
-import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
-import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
-import com.virohtus.dht.core.engine.action.network.JoinNetworkRequest;
-import com.virohtus.dht.core.engine.action.network.JoinNetworkResponse;
+import com.virohtus.dht.core.engine.action.network.*;
 import com.virohtus.dht.core.transport.io.DhtInputStream;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
 import com.virohtus.dht.core.transport.protocol.DhtProtocol;
@@ -35,6 +32,7 @@ public class ActionFactory {
             case DhtProtocol.JOIN_NETWORK_RESPONSE: return new JoinNetworkResponse(event);
             case DhtProtocol.GET_NODE_IDENTITY_REQUEST: return new GetNodeIdentityRequest(event);
             case DhtProtocol.GET_NODE_IDENTITY_RESPONSE: return new GetNodeIdentityResponse(event);
+            case DhtProtocol.GET_NETWORK: return new GetNetwork(event);
         }
 
         throw new IOException("unsupported TransportableAction type: " + type);

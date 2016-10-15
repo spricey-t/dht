@@ -2,9 +2,13 @@ package com.virohtus.dht.core.engine.store.peer;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.action.peer.PeerConnected;
 import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
 import com.virohtus.dht.core.engine.store.Store;
+import com.virohtus.dht.core.network.Node;
+import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.network.peer.PeerNotFoundException;
 import com.virohtus.dht.core.network.peer.PeerType;
@@ -18,6 +22,7 @@ import java.net.SocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PeerStore implements Store {
@@ -41,6 +46,17 @@ public class PeerStore implements Store {
         }
         synchronized (readyForShutdown) {
             readyForShutdown.set(false);
+        }
+    }
+
+    public Peer getPeer(Node node) throws PeerNotFoundException, InterruptedException, TimeoutException, IOException {
+        synchronized (peers) {
+            for(Peer p : peers.values()) {
+                if(p.getNodeIdentity().equals(node.getNodeIdentity())) {
+                    return p;
+                }
+            }
+            throw new PeerNotFoundException();
         }
     }
 

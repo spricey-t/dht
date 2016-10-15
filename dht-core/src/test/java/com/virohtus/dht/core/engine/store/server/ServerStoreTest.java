@@ -61,7 +61,7 @@ public class ServerStoreTest {
     }
 
     @Test
-    public void testPeerAdded() {
+    public void testPeerAdded() throws IOException {
         store.start();
         store.connectionOpened(connection);
         ArgumentCaptor<PeerType> peerTypeCaptor = ArgumentCaptor.forClass(PeerType.class);

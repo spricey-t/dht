@@ -84,7 +84,7 @@ public class PeerStoreTest {
     }
 
     @Test
-    public void testCreatePeerWithConnection() throws PeerNotFoundException {
+    public void testCreatePeerWithConnection() throws PeerNotFoundException, IOException {
         Peer peer = peerStore.createPeer(connection, PeerType.INCOMING);
         Assert.assertEquals(peer, peerStore.getPeer(peer.getId()));
     }

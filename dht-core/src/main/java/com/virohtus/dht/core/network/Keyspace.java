@@ -65,7 +65,7 @@ public class Keyspace implements Wireable {
 
     public Keyspace split() {
         synchronized (lock) {
-            int mid = (end - start) / 2;
+            int mid = (end - start) / 2 + start;
             int originalStart = start;
             start = mid;
             return new Keyspace(originalStart, mid);
@@ -74,12 +74,11 @@ public class Keyspace implements Wireable {
 
     public void merge(Keyspace keyspace) {
         synchronized (lock) {
-            if(start > keyspace.getEnd()) {
-                this.start = keyspace.getStart();
-            } else if(end < keyspace.getStart()) {
-                this.end = keyspace.end;
-            } else {
-                LOG.error("keyspace merge error");
+            if(start > keyspace.getStart()) {
+                start = keyspace.getStart();
+            }
+            if(end < keyspace.getEnd()) {
+                end = keyspace.getEnd();
             }
         }
     }

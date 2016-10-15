@@ -2,7 +2,10 @@ package com.virohtus.dht.core.network.peer;
 
 import com.virohtus.dht.core.action.*;
 import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.action.peer.PeerDisconnected;
+import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.connection.ConnectionDelegate;
 import com.virohtus.dht.core.transport.protocol.DhtEvent;
@@ -18,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 public class Peer implements ConnectionDelegate {
 
@@ -29,6 +33,7 @@ public class Peer implements ConnectionDelegate {
     private final Connection connection;
     private final ActionFactory actionFactory = ActionFactory.getInstance();
     private final Map<String, Resolvable<ResponseAction>> pendingRequests;
+    private final Resolvable<NodeIdentity> nodeIdentityResolvable;
 
     public Peer(Dispatcher dispatcher, ExecutorService executorService, PeerType type, Connection connection) {
         id = new IdService().generateId();
@@ -37,6 +42,7 @@ public class Peer implements ConnectionDelegate {
         this.type = type;
         this.connection = connection;
         this.pendingRequests = new HashMap<>();
+        this.nodeIdentityResolvable = new Resolvable<>(DhtProtocol.REQUEST_TIMEOUT);
         connection.setConnectionDelegate(this);
     }
 
@@ -50,6 +56,14 @@ public class Peer implements ConnectionDelegate {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public NodeIdentity getNodeIdentity() throws IOException, TimeoutException, InterruptedException {
+        if(!nodeIdentityResolvable.valuePresent()) {
+            GetNodeIdentityResponse response = sendRequest(new GetNodeIdentityRequest(), GetNodeIdentityResponse.class).get();
+            nodeIdentityResolvable.resolve(response.getNodeIdentity());
+        }
+        return nodeIdentityResolvable.get();
     }
 
     public void listen() {
