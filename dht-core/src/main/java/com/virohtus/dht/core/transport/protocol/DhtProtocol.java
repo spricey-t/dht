@@ -22,4 +22,7 @@ public interface DhtProtocol {
 
     int GET_PREDECESSOR_REQUEST = 6;
     int GET_PREDECESSOR_RESPONSE = 7;
+
+    int GET_NODE_REQUEST = 8;
+    int GET_NODE_RESPONSE = 9;
 }

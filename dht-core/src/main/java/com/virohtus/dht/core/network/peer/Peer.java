@@ -27,7 +27,7 @@ public class Peer implements ConnectionDelegate {
 
     private static final Logger LOG = LoggerFactory.getLogger(Peer.class);
     private final String id;
-    private final PeerType type;
+    private PeerType type;
     private final Dispatcher dispatcher;
     private final ExecutorService executorService;
     private final Connection connection;
@@ -52,6 +52,10 @@ public class Peer implements ConnectionDelegate {
 
     public PeerType getType() {
         return type;
+    }
+
+    public void setType(PeerType peerType) {
+        this.type = peerType;
     }
 
     public Connection getConnection() {
@@ -122,7 +126,6 @@ public class Peer implements ConnectionDelegate {
             LOG.warn("receive failure: " + e.getMessage());
             shutdown();
         }
-        LOG.info("received dht packet: " + new String(event.getPayload()));
     }
 
     @Override

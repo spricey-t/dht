@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 public class FingerTable implements Wireable {
 
@@ -78,6 +79,12 @@ public class FingerTable implements Wireable {
             }
         }
         return node;
+    }
+
+    public Optional<Node> containsSuccessor(NodeIdentity nodeIdentity) {
+        synchronized (successors) {
+            return successors.stream().filter(successor -> successor.getNodeIdentity().equals(nodeIdentity)).findAny();
+        }
     }
 
     @Override

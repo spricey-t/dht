@@ -11,6 +11,7 @@ import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
 import com.virohtus.dht.core.network.*;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.peer.Peer;
+import com.virohtus.dht.core.network.peer.PeerNotFoundException;
 import com.virohtus.dht.core.util.IdService;
 import com.virohtus.dht.core.util.Resolvable;
 import org.slf4j.Logger;
@@ -86,7 +87,7 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
     }
 
     @Override
-    public Network getNetwork() {
+    public Network getNetwork() throws InterruptedException, TimeoutException, PeerNotFoundException, IOException {
         return networkStore.getNetwork();
     }
 
