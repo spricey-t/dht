@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class FingerTable implements Wireable {
 
@@ -18,6 +19,12 @@ public class FingerTable implements Wireable {
     public FingerTable() {
         successors = new ArrayList<>();
         predecessor = null;
+    }
+
+    public FingerTable(FingerTable copy) {
+        this();
+        successors.addAll(copy.getSuccessors().stream().map(Node::new).collect(Collectors.toList()));
+        predecessor = copy.getPredecessor();
     }
 
     public FingerTable(DhtInputStream inputStream) throws IOException {

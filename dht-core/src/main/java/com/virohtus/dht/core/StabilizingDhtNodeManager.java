@@ -1,19 +1,14 @@
 package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.Dispatcher;
-import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
-import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
-import com.virohtus.dht.core.engine.store.LogStore;
-import com.virohtus.dht.core.engine.store.network.NetworkStore;
-import com.virohtus.dht.core.engine.store.network.StabilizationStore;
-import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
-import com.virohtus.dht.core.network.*;
+import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
+import com.virohtus.dht.core.engine.store.server.ServerStore;
+import com.virohtus.dht.core.network.*;
 import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.network.peer.PeerNotFoundException;
 import com.virohtus.dht.core.util.IdService;
-import com.virohtus.dht.core.util.Resolvable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +27,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
     private final Dispatcher dispatcher;
     private final ServerStore serverStore;
     private final PeerStore peerStore;
-    private final NetworkStore networkStore;
-    private final StabilizationStore stabilizationStore;
 
     public StabilizingDhtNodeManager(int serverPort) throws IOException {
         node = new Node(new NodeIdentity(new IdService().generateId(), null), new Keyspace(), new FingerTable());
@@ -42,14 +35,10 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
         peerStore = new PeerStore(dispatcher, executorService);
         serverStore = new ServerStore(dispatcher, executorService, peerStore, new InetSocketAddress(serverPort));
-        networkStore = new NetworkStore(this, peerStore);
-        stabilizationStore = new StabilizationStore(executorService, this, peerStore, networkStore);
 
         dispatcher.registerStore(new LogStore());
         dispatcher.registerStore(peerStore);
         dispatcher.registerStore(serverStore);
-        dispatcher.registerStore(networkStore);
-        dispatcher.registerStore(stabilizationStore);
     }
 
     @Override
@@ -57,7 +46,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
         serverStore.start();
         node.getNodeIdentity().setSocketAddress(serverStore.getSocketAddress());
         dispatcher.start();
-        stabilizationStore.start();
     }
 
     @Override
@@ -65,7 +53,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
         serverStore.shutdown();
         peerStore.shutdown();
         dispatcher.shutdown();
-        stabilizationStore.shutdown();
         executorService.shutdown();
 
         try {
@@ -78,7 +65,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     @Override
     public void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException, TimeoutException {
-        networkStore.joinNetwork(socketAddress);
     }
 
     @Override
@@ -88,13 +74,11 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     @Override
     public Network getNetwork() throws InterruptedException, TimeoutException, PeerNotFoundException, IOException {
-        return networkStore.getNetwork();
+        return null;
     }
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {
         Peer peer = peerStore.createPeer(socketAddress);
-        Resolvable<GetNodeIdentityResponse> responseResolvable = peer.sendRequest(new GetNodeIdentityRequest(), GetNodeIdentityResponse.class);
-        GetNodeIdentityResponse response = responseResolvable.get();
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
@@ -108,7 +92,8 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
                 cmd = key.nextLine();
                 String[] cmdArgs = cmd.split("\\s");
                 if (cmdArgs[0].equals("connect")) {
-                    node.joinNetwork(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+                    //node.joinNetwork(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+                    node.connect(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
                 }
             }
         } finally {

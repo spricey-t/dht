@@ -19,6 +19,11 @@ public class NodeIdentity implements Wireable {
         this.socketAddress = socketAddress;
     }
 
+    public NodeIdentity(NodeIdentity other) {
+        this.nodeId = other.getNodeId();
+        this.socketAddress = other.getSocketAddress();
+    }
+
     public NodeIdentity(DhtInputStream inputStream) throws IOException {
         fromWire(inputStream);
     }

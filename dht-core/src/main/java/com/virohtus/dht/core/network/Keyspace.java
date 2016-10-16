@@ -26,6 +26,11 @@ public class Keyspace implements Wireable {
         this.end = end;
     }
 
+    public Keyspace(Keyspace other) {
+        this.start = other.getStart();
+        this.end = other.getEnd();
+    }
+
     public Keyspace(DhtInputStream inputStream) throws IOException {
         this();
         fromWire(inputStream);

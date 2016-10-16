@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -33,7 +34,7 @@ public class Peer implements ConnectionDelegate {
     private final Connection connection;
     private final ActionFactory actionFactory = ActionFactory.getInstance();
     private final Map<String, Resolvable<ResponseAction>> pendingRequests;
-    private final Resolvable<NodeIdentity> nodeIdentityResolvable;
+    private NodeIdentity nodeIdentity;
 
     public Peer(Dispatcher dispatcher, ExecutorService executorService, PeerType type, Connection connection) {
         id = new IdService().generateId();
@@ -42,7 +43,6 @@ public class Peer implements ConnectionDelegate {
         this.type = type;
         this.connection = connection;
         this.pendingRequests = new HashMap<>();
-        this.nodeIdentityResolvable = new Resolvable<>(DhtProtocol.REQUEST_TIMEOUT);
         connection.setConnectionDelegate(this);
     }
 
@@ -62,16 +62,12 @@ public class Peer implements ConnectionDelegate {
         return connection;
     }
 
-    public NodeIdentity getNodeIdentity() throws IOException, TimeoutException, InterruptedException {
-        if(!nodeIdentityResolvable.valuePresent()) {
-            GetNodeIdentityResponse response = sendRequest(new GetNodeIdentityRequest(), GetNodeIdentityResponse.class).get();
-            nodeIdentityResolvable.resolve(response.getNodeIdentity());
-        }
-        return nodeIdentityResolvable.get();
+    public Optional<NodeIdentity> getNodeIdentity() {
+        return Optional.ofNullable(nodeIdentity);
     }
 
-    public boolean hasNodeIdentity() {
-        return nodeIdentityResolvable.valuePresent();
+    public void setNodeIdentity(NodeIdentity nodeIdentity) {
+        this.nodeIdentity = nodeIdentity;
     }
 
     public void listen() {

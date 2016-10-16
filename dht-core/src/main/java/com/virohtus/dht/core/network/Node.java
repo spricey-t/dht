@@ -18,6 +18,12 @@ public class Node implements Wireable {
         this.fingerTable = fingerTable;
     }
 
+    public Node(Node copy) {
+        this.nodeIdentity = new NodeIdentity(copy.getNodeIdentity());
+        this.keyspace = new Keyspace(copy.getKeyspace());
+        this.fingerTable = new FingerTable(copy.getFingerTable());
+    }
+
     public Node(DhtInputStream inputStream) throws IOException {
         fromWire(inputStream);
     }
@@ -36,6 +42,10 @@ public class Node implements Wireable {
 
     public FingerTable getFingerTable() {
         return fingerTable;
+    }
+
+    public void setFingerTable(FingerTable fingerTable) {
+        this.fingerTable = fingerTable;
     }
 
     @Override
