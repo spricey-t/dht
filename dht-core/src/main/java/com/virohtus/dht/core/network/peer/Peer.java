@@ -70,6 +70,10 @@ public class Peer implements ConnectionDelegate {
         return nodeIdentityResolvable.get();
     }
 
+    public boolean hasNodeIdentity() {
+        return nodeIdentityResolvable.valuePresent();
+    }
+
     public void listen() {
         connection.listen();
     }

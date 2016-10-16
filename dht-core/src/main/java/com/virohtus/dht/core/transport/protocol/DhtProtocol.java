@@ -9,7 +9,7 @@ public interface DhtProtocol {
     int REQUEST_TIMEOUT = 10000;
     int NETWORK_TIMEOUT = 30000;
     int GLOBAL_KEYSPACE = 500;
-    int STABILIZATION_PERIOD = 2000;
+    int STABILIZATION_PERIOD = 5000;
 
 
     int JOIN_NETWORK_REQUEST = 1;
@@ -19,9 +19,6 @@ public interface DhtProtocol {
     int GET_NODE_IDENTITY_RESPONSE = 4;
 
     int GET_NETWORK = 5;
-
-    int GET_PREDECESSOR_REQUEST = 6;
-    int GET_PREDECESSOR_RESPONSE = 7;
 
     int GET_NODE_REQUEST = 8;
     int GET_NODE_RESPONSE = 9;

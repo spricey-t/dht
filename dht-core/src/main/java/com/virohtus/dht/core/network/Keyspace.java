@@ -12,12 +12,10 @@ import java.io.IOException;
 public class Keyspace implements Wireable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Keyspace.class);
-    private final Object lock;
     private int start;
     private int end;
 
     public Keyspace() {
-        lock = new Object();
         start = 0;
         end = DhtProtocol.GLOBAL_KEYSPACE;
     }
@@ -34,59 +32,43 @@ public class Keyspace implements Wireable {
     }
 
     public int getStart() {
-        synchronized (lock) {
-            return start;
-        }
+        return start;
     }
 
     public void setStart(int start) {
-        synchronized (lock) {
-            this.start = start;
-        }
+        this.start = start;
     }
 
     public int getEnd() {
-        synchronized (lock) {
-            return end;
-        }
+        return end;
     }
 
     public void setEnd(int end) {
-        synchronized (lock) {
-            this.end = end;
-        }
+        this.end = end;
     }
 
     public boolean inKeyspace(int key) {
-        synchronized (lock) {
-            return key > start && key <= end;
-        }
+        return key > start && key <= end;
     }
 
     public Keyspace split() {
-        synchronized (lock) {
-            int mid = (end - start) / 2 + start;
-            int originalStart = start;
-            start = mid;
-            return new Keyspace(originalStart, mid);
-        }
+        int mid = (end - start) / 2 + start;
+        int originalStart = start;
+        start = mid;
+        return new Keyspace(originalStart, mid);
     }
 
     public void merge(Keyspace keyspace) {
-        synchronized (lock) {
-            if(start > keyspace.getStart()) {
-                start = keyspace.getStart();
-            }
-            if(end < keyspace.getEnd()) {
-                end = keyspace.getEnd();
-            }
+        if(start > keyspace.getStart()) {
+            start = keyspace.getStart();
+        }
+        if(end < keyspace.getEnd()) {
+            end = keyspace.getEnd();
         }
     }
 
     public boolean isDefaultKeyspace() {
-        synchronized (lock) {
-            return start == 0 && end == DhtProtocol.GLOBAL_KEYSPACE;
-        }
+        return start == 0 && end == DhtProtocol.GLOBAL_KEYSPACE;
     }
 
     @Override
