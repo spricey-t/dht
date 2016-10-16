@@ -2,6 +2,7 @@ package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.network.Network;
 import com.virohtus.dht.core.network.Node;
+import com.virohtus.dht.core.network.NodeManager;
 import com.virohtus.dht.core.network.peer.PeerNotFoundException;
 
 import java.io.IOException;

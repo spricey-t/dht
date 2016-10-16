@@ -15,8 +15,8 @@ public class GetNetwork extends TransportableAction {
 
     private Network network;
 
-    public GetNetwork(Node initiator) {
-        network = new Network(Arrays.asList(initiator));
+    public GetNetwork(Network network) {
+        this.network = network;
     }
 
     public GetNetwork(DhtEvent dhtEvent) throws IOException {

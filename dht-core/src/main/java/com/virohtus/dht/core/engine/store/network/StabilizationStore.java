@@ -61,7 +61,7 @@ public class StabilizationStore implements Store {
 
     private void stabilize() {
         try {
-            networkStore.stabilize();
+//            networkStore.stabilize();
         } catch (Exception e) {
             LOG.error("stabilization error", e);
         }

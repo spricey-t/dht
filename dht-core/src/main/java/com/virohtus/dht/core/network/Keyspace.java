@@ -56,11 +56,14 @@ public class Keyspace implements Wireable {
         return key > start && key <= end;
     }
 
-    public Keyspace split() {
+    public Keyspace[] split() {
         int mid = (end - start) / 2 + start;
         int originalStart = start;
         start = mid;
-        return new Keyspace(originalStart, mid);
+        Keyspace[] split = new Keyspace[2];
+        split[0] = new Keyspace(originalStart, mid);
+        split[1] = new Keyspace(mid, end);
+        return split;
     }
 
     public void merge(Keyspace keyspace) {

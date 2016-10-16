@@ -62,8 +62,8 @@ public class Peer implements ConnectionDelegate {
         return connection;
     }
 
-    public Optional<NodeIdentity> getNodeIdentity() {
-        return Optional.ofNullable(nodeIdentity);
+    public NodeIdentity getNodeIdentity() {
+        return nodeIdentity;
     }
 
     public void setNodeIdentity(NodeIdentity nodeIdentity) {

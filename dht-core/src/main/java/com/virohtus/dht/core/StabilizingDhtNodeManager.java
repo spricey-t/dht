@@ -3,6 +3,7 @@ package com.virohtus.dht.core;
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
 import com.virohtus.dht.core.engine.store.LogStore;
+import com.virohtus.dht.core.engine.store.network.NetworkStore;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.network.*;
@@ -22,29 +23,33 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(StabilizingDhtNodeManager.class);
     private static final int SHUTDOWN_TIMEOUT = 3; // seconds
-    private final Node node;
+    private final NodeManager nodeManager;
     private final ExecutorService executorService;
     private final Dispatcher dispatcher;
     private final ServerStore serverStore;
     private final PeerStore peerStore;
+    private final NetworkStore networkStore;
 
     public StabilizingDhtNodeManager(int serverPort) throws IOException {
-        node = new Node(new NodeIdentity(new IdService().generateId(), null), new Keyspace(), new FingerTable());
+        Node node = new Node(new NodeIdentity(new IdService().generateId(), null), new Keyspace(), new FingerTable());
+        nodeManager = new NodeManager(node);
         executorService = Executors.newCachedThreadPool();
         dispatcher = new SingleThreadedDispatcher(executorService);
 
         peerStore = new PeerStore(dispatcher, executorService);
         serverStore = new ServerStore(dispatcher, executorService, peerStore, new InetSocketAddress(serverPort));
+        networkStore = new NetworkStore(this, nodeManager, peerStore);
 
         dispatcher.registerStore(new LogStore());
         dispatcher.registerStore(peerStore);
         dispatcher.registerStore(serverStore);
+        dispatcher.registerStore(networkStore);
     }
 
     @Override
     public void start() throws ExecutionException, InterruptedException, IOException {
         serverStore.start();
-        node.getNodeIdentity().setSocketAddress(serverStore.getSocketAddress());
+        nodeManager.setSocketAddress(serverStore.getSocketAddress());
         dispatcher.start();
     }
 
@@ -65,16 +70,17 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     @Override
     public void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException, TimeoutException {
+        networkStore.join(socketAddress);
     }
 
     @Override
     public Node getNode() {
-        return node;
+        return nodeManager.getCurrentNode();
     }
 
     @Override
     public Network getNetwork() throws InterruptedException, TimeoutException, PeerNotFoundException, IOException {
-        return null;
+        return networkStore.getNetwork();
     }
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {
@@ -92,8 +98,8 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
                 cmd = key.nextLine();
                 String[] cmdArgs = cmd.split("\\s");
                 if (cmdArgs[0].equals("connect")) {
-                    //node.joinNetwork(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
-                    node.connect(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+                    node.joinNetwork(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
+//                    node.connect(new InetSocketAddress(cmdArgs[1], Integer.parseInt(cmdArgs[2])));
                 }
             }
         } finally {

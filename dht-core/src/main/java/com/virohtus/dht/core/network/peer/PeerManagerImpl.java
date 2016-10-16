@@ -1,13 +1,15 @@
 package com.virohtus.dht.core.network.peer;
 
 import com.virohtus.dht.core.network.NodeIdentity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 public class PeerManagerImpl implements PeerManager {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PeerManagerImpl.class);
     private final Set<Peer> peers;
 
     public PeerManagerImpl() {
@@ -29,12 +31,14 @@ public class PeerManagerImpl implements PeerManager {
     @Override
     public Peer getPeer(NodeIdentity nodeIdentity) throws PeerNotFoundException {
         synchronized (peers) {
-            for(Peer peer : peers) {
-                Optional<NodeIdentity> peerIdentity = peer.getNodeIdentity();
-                if(peerIdentity.isPresent()) {
-                    if(peerIdentity.get().equals(nodeIdentity)) {
+            for (Peer peer : peers) {
+                try {
+                    NodeIdentity peerIdentity = peer.getNodeIdentity();
+                    if (peerIdentity.equals(nodeIdentity)) {
                         return peer;
                     }
+                } catch(Exception e) {
+                    LOG.error("failed to get PeerIdentity!");
                 }
             }
             throw new PeerNotFoundException();
