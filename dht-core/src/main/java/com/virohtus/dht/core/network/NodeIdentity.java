@@ -46,7 +46,7 @@ public class NodeIdentity implements Wireable {
             throw new IllegalArgumentException("have not implemented serialization for non InetSocketAddress types!");
         }
         InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
-        outputStream.writeSizedData(inetSocketAddress.getHostName().getBytes(DhtProtocol.STRING_ENCODING));
+        outputStream.writeSizedData(DhtProtocol.HOSTNAME.getBytes(DhtProtocol.STRING_ENCODING));
         outputStream.writeInt(inetSocketAddress.getPort());
     }
 

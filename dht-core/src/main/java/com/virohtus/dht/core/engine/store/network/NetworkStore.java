@@ -96,7 +96,10 @@ public class NetworkStore implements Store {
         Peer peer = peerDisconnected.getPeer();
         try {
             FingerTable fingerTable = dhtNodeManager.getNode().getFingerTable();
-            fingerTable.removeSuccessor(peer.getNodeIdentity());
+            if(!(fingerTable.getImmediateSuccessor().getNodeIdentity().equals(peer.getNodeIdentity()) &&
+                    fingerTable.getPredecessor().getNodeIdentity().equals(peer.getNodeIdentity()))) {
+                fingerTable.removeSuccessor(peer.getNodeIdentity());
+            }
             if(fingerTable.getPredecessor() != null && fingerTable.getPredecessor().getNodeIdentity().equals(peer.getNodeIdentity())) {
                 Node predecessor = fingerTable.getPredecessor();
                 fingerTable.setPredecessor(null);

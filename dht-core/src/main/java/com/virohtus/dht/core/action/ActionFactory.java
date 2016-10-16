@@ -33,6 +33,8 @@ public class ActionFactory {
             case DhtProtocol.GET_NODE_IDENTITY_REQUEST: return new GetNodeIdentityRequest(event);
             case DhtProtocol.GET_NODE_IDENTITY_RESPONSE: return new GetNodeIdentityResponse(event);
             case DhtProtocol.GET_NETWORK: return new GetNetwork(event);
+            case DhtProtocol.GET_PREDECESSOR_REQUEST: return new GetPredecessorRequest(event);
+            case DhtProtocol.GET_PREDECESSOR_RESPONSE: return new GetPredecessorResponse(event);
         }
 
         throw new IOException("unsupported TransportableAction type: " + type);
