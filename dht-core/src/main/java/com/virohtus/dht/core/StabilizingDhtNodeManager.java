@@ -75,6 +75,11 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
     }
 
     @Override
+    public boolean isShutdown() {
+        return !serverStore.isAlive();
+    }
+
+    @Override
     public void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException, TimeoutException {
         networkStore.join(socketAddress);
     }

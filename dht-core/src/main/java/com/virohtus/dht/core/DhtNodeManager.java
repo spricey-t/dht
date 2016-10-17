@@ -13,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 public interface DhtNodeManager {
     void start() throws ExecutionException, InterruptedException, IOException;
     void shutdown();
+    boolean isShutdown();
     void joinNetwork(SocketAddress socketAddress) throws IOException, InterruptedException, TimeoutException;
     Node getNode();
     Network getNetwork() throws InterruptedException, TimeoutException, PeerNotFoundException, IOException;
