@@ -1,29 +1,24 @@
 package com.virohtus.dht.rest.network;
 
-import com.virohtus.dht.core.DhtNode;
-import com.virohtus.dht.core.network.GetDhtNetworkFailedException;
-import com.virohtus.dht.core.network.NodeNetwork;
-import com.virohtus.dht.rest.serialize.ErrorResponse;
+import com.virohtus.dht.core.DhtNodeManager;
+import com.virohtus.dht.core.network.Network;
+import com.virohtus.dht.core.network.peer.PeerNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 @RestController
-@RequestMapping(path = "/network")
+@RequestMapping("/network")
 public class NetworkController {
 
-    @Autowired private DhtNode node;
+    @Autowired private DhtNodeManager nodeManager;
 
-    @RequestMapping(path = "", method = RequestMethod.GET)
-    public List<NodeNetwork> getNetwork() throws GetDhtNetworkFailedException, InterruptedException {
-        return node.getDhtNetwork().getNodeNets();
-    }
-
-    @ExceptionHandler(GetDhtNetworkFailedException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleGetDhtNetworkFailedException(GetDhtNetworkFailedException e) {
-        return new ErrorResponse("could not get dht network", e);
+    @RequestMapping(value = "", method = RequestMethod.GET, headers = {"Cache-Control=no-cache"})
+    public Network getNetwork() throws InterruptedException, TimeoutException, PeerNotFoundException, IOException {
+        return nodeManager.getNetwork();
     }
 }
