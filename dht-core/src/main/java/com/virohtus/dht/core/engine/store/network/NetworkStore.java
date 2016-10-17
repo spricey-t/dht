@@ -106,15 +106,7 @@ public class NetworkStore implements Store {
         nodeManager.removeSuccessor(peer.getNodeIdentity());
         node = nodeManager.getCurrentNode();
         if(node.getFingerTable().getPredecessor() != null && !node.getFingerTable().hasSuccessors() && !dhtNodeManager.isShutdown()) {
-            // this means there are only 2 nodes left in the network -- reconnect them
-            try {
-                Peer predecessorPeer = peerStore.getPeer(predecessor);
-                node.getFingerTable().setImmediateSuccessor(predecessor); // for data purposes
-                predecessorPeer.send(new SetPredecessor(node).serialize());
-                nodeManager.setImmediateSuccessor(predecessor);
-            } catch (Exception e) {
-                LOG.error("failed to set predecessor as successor!", e);
-            }
+            nodeManager.setImmediateSuccessor(predecessor);
         }
     }
 
