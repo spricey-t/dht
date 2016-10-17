@@ -100,7 +100,7 @@ public class NetworkStore implements Store {
             nodeManager.mergeKeyspace(predecessor.getKeyspace());
             nodeManager.setPredecessor(null);
         }
-        nodeManager.removeSuccessor(predecessor);
+        nodeManager.removeSuccessor(peer.getNodeIdentity());
     }
 
     private void handleGetNodeIdentityRequest(GetNodeIdentityRequest request) {

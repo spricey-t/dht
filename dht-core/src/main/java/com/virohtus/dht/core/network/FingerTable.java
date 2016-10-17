@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class FingerTable implements Wireable {
 
-    private final List<Node> successors;
+    private List<Node> successors;
     private Node predecessor;
 
     public FingerTable() {
@@ -42,6 +42,10 @@ public class FingerTable implements Wireable {
 
     public List<Node> getSuccessors() {
         return successors;
+    }
+
+    public void setSuccessors(List<Node> successors) {
+        this.successors = successors;
     }
 
     public boolean hasSuccessors() {

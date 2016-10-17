@@ -1,7 +1,8 @@
 package com.virohtus.dht.core.network;
 
 import java.net.SocketAddress;
-import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class NodeManager {
 
@@ -53,15 +54,9 @@ public class NodeManager {
         }
     }
 
-    public void removeSuccessor(Node successor) {
+    public void removeSuccessor(NodeIdentity successor) {
         synchronized (node) {
-            Iterator<Node> nodeIterator = node.getFingerTable().getSuccessors().iterator();
-            while(nodeIterator.hasNext()) {
-                Node s = nodeIterator.next();
-                if(s.getNodeIdentity().equals(successor.getNodeIdentity())) {
-                    nodeIterator.remove();
-                }
-            }
+            node.getFingerTable().removeSuccessor(successor);
         }
     }
 }
