@@ -1,5 +1,7 @@
 package com.virohtus.dht.core.util;
 
+import java.util.concurrent.TimeoutException;
+
 public class Resolvable<T> {
 
     private final Object resolveLock = new Object();
@@ -10,14 +12,17 @@ public class Resolvable<T> {
         this.defaultTimeout = defaultTimeout;
     }
 
-    public T get() throws InterruptedException {
+    public T get() throws InterruptedException, TimeoutException {
         return get(defaultTimeout);
     }
 
-    public T get(long timeout) throws InterruptedException {
+    public T get(long timeout) throws InterruptedException, TimeoutException {
         synchronized (resolveLock) {
             if(!valuePresent()) {
                 resolveLock.wait(timeout);
+            }
+            if(!valuePresent()) {
+                throw new TimeoutException();
             }
             return value;
         }

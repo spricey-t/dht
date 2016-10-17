@@ -1,8 +1,8 @@
 package com.virohtus.dht.core.transport.connection;
 
-import java.io.IOException;
+import com.virohtus.dht.core.transport.protocol.DhtEvent;
 
 public interface ConnectionDelegate {
-    void dataReceived(byte[] data);
-    void receiveDisrupted(IOException e);
+    void dataReceived(DhtEvent data);
+    void listenerDisrupted();
 }

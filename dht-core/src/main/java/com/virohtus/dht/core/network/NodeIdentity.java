@@ -1,35 +1,31 @@
 package com.virohtus.dht.core.network;
 
-import com.virohtus.dht.core.event.EventSerializable;
-import com.virohtus.dht.core.key.Keyspace;
-import com.virohtus.dht.core.key.KeyspaceService;
-import com.virohtus.dht.core.transport.connection.ConnectionInfo;
-import com.virohtus.dht.core.util.DhtInputStream;
-import com.virohtus.dht.core.util.DhtOutputStream;
+import com.virohtus.dht.core.action.Wireable;
+import com.virohtus.dht.core.transport.io.DhtInputStream;
+import com.virohtus.dht.core.transport.io.DhtOutputStream;
+import com.virohtus.dht.core.transport.protocol.DhtProtocol;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Optional;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
-public class NodeIdentity implements EventSerializable {
+public class NodeIdentity implements Wireable {
 
     private String nodeId;
-    private ConnectionInfo connectionInfo;
+    private SocketAddress socketAddress;
 
-    public NodeIdentity(byte[] data) throws IOException {
-        try (
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-            DhtInputStream inputStream = new DhtInputStream(byteArrayInputStream)
-        ) {
-            nodeId = inputStream.readString();
-            connectionInfo = inputStream.readEventSerializable(ConnectionInfo.class);
-        }
+    public NodeIdentity(String nodeId, SocketAddress socketAddress) {
+        this.nodeId = nodeId;
+        this.socketAddress = socketAddress;
     }
 
-    public NodeIdentity(String nodeId, ConnectionInfo connectionInfo) {
-        this.nodeId = nodeId;
-        this.connectionInfo = connectionInfo;
+    public NodeIdentity(NodeIdentity other) {
+        this.nodeId = other.getNodeId();
+        this.socketAddress = other.getSocketAddress();
+    }
+
+    public NodeIdentity(DhtInputStream inputStream) throws IOException {
+        fromWire(inputStream);
     }
 
     public String getNodeId() {
@@ -40,30 +36,31 @@ public class NodeIdentity implements EventSerializable {
         this.nodeId = nodeId;
     }
 
-    public ConnectionInfo getConnectionInfo() {
-        return connectionInfo;
+    public SocketAddress getSocketAddress() {
+        return socketAddress;
     }
 
-    public void setConnectionInfo(ConnectionInfo connectionInfo) {
-        this.connectionInfo = connectionInfo;
+    public void setSocketAddress(SocketAddress socketAddress) {
+        this.socketAddress = socketAddress;
     }
 
     @Override
-    public byte[] getBytes() throws IOException {
-        try (
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            DhtOutputStream outputStream = new DhtOutputStream(byteArrayOutputStream)
-        ) {
-            outputStream.writeString(nodeId);
-            outputStream.writeEventSerializable(connectionInfo);
-            outputStream.flush();
-            return byteArrayOutputStream.toByteArray();
+    public void toWire(DhtOutputStream outputStream) throws IOException {
+        outputStream.writeSizedData(nodeId.getBytes(DhtProtocol.STRING_ENCODING));
+        if(!(socketAddress instanceof InetSocketAddress)) {
+            throw new IllegalArgumentException("have not implemented serialization for non InetSocketAddress types!");
         }
+        InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+        outputStream.writeSizedData(DhtProtocol.HOSTNAME.getBytes(DhtProtocol.STRING_ENCODING));
+        outputStream.writeInt(inetSocketAddress.getPort());
     }
 
     @Override
-    public String toString() {
-        return String.format("nodeId: %s connectionInfo: %s", nodeId, connectionInfo);
+    public void fromWire(DhtInputStream inputStream) throws IOException {
+        nodeId = new String(inputStream.readSizedData(), DhtProtocol.STRING_ENCODING);
+        String hostname = new String(inputStream.readSizedData(), DhtProtocol.STRING_ENCODING);
+        int port = inputStream.readInt();
+        socketAddress = new InetSocketAddress(hostname, port);
     }
 
     @Override
@@ -73,15 +70,12 @@ public class NodeIdentity implements EventSerializable {
 
         NodeIdentity that = (NodeIdentity) o;
 
-        if (!nodeId.equals(that.nodeId)) return false;
-        return connectionInfo.getPort() == that.connectionInfo.getPort();
+        return nodeId.equals(that.nodeId);
 
     }
 
     @Override
     public int hashCode() {
-        int result = nodeId.hashCode();
-        result = 31 * result + connectionInfo.getPort();
-        return result;
+        return nodeId.hashCode();
     }
 }

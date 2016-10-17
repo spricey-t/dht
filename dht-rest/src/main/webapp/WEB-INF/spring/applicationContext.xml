@@ -19,12 +19,12 @@
     </mvc:annotation-driven>
 
     <!-- Custom Object Mapper -->
-    <bean id="dhtObjectMapper" class="com.virohtus.dht.rest.serialize.DhtObjectMapper"/>
+    <bean id="dhtObjectMapper" class="com.virohtus.dht.rest.DhtObjectMapper"/>
 
     <bean id="restExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool">
     </bean>
 
-    <bean id="dhtNode" class="com.virohtus.dht.core.StabilizingDhtNode" init-method="start" >
+    <bean id="dhtNodeManager" class="com.virohtus.dht.core.StabilizingDhtNodeManager" init-method="start" >
         <constructor-arg name="serverPort" value="11081"/>
     </bean>
 
