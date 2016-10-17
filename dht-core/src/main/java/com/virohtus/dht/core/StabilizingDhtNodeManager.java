@@ -4,6 +4,7 @@ import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
 import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.network.NetworkStore;
+import com.virohtus.dht.core.engine.store.network.StabilizationStore;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.engine.store.server.ServerStore;
 import com.virohtus.dht.core.network.*;
@@ -29,6 +30,7 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
     private final ServerStore serverStore;
     private final PeerStore peerStore;
     private final NetworkStore networkStore;
+    private final StabilizationStore stabilizationStore;
 
     public StabilizingDhtNodeManager(int serverPort) throws IOException {
         Node node = new Node(new NodeIdentity(new IdService().generateId(), null), new Keyspace(), new FingerTable());
@@ -39,17 +41,20 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
         peerStore = new PeerStore(dispatcher, executorService);
         serverStore = new ServerStore(dispatcher, executorService, peerStore, new InetSocketAddress(serverPort));
         networkStore = new NetworkStore(this, nodeManager, peerStore);
+        stabilizationStore = new StabilizationStore(executorService, nodeManager, peerStore);
 
         dispatcher.registerStore(new LogStore());
         dispatcher.registerStore(peerStore);
         dispatcher.registerStore(serverStore);
         dispatcher.registerStore(networkStore);
+        dispatcher.registerStore(stabilizationStore);
     }
 
     @Override
     public void start() throws ExecutionException, InterruptedException, IOException {
         serverStore.start();
         nodeManager.setSocketAddress(serverStore.getSocketAddress());
+        stabilizationStore.start();
         dispatcher.start();
     }
 
@@ -58,6 +63,7 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
         serverStore.shutdown();
         peerStore.shutdown();
         dispatcher.shutdown();
+        stabilizationStore.shutdown();
         executorService.shutdown();
 
         try {

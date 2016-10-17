@@ -88,6 +88,9 @@ public class NetworkStore implements Store {
                 case DhtProtocol.GET_NETWORK:
                     handleGetNetwork((GetNetwork)transportableAction);
                     break;
+                case DhtProtocol.GET_NODE_REQUEST:
+                    handleGetNodeRequest((GetNodeRequest)transportableAction);
+                    break;
             }
         }
     }
@@ -146,6 +149,15 @@ public class NetworkStore implements Store {
             peer.send(getNetwork.serialize());
         } catch (Exception e) {
             LOG.warn("received GetNetwork but we have nowhere to go!");
+        }
+    }
+
+    private void handleGetNodeRequest(GetNodeRequest getNodeRequest) {
+        try {
+            getNodeRequest.getSourcePeer().send(new GetNodeResponse(getNodeRequest.getRequestId(),
+                    nodeManager.getCurrentNode()).serialize());
+        } catch (IOException e) {
+            LOG.error("failed to send GetNodeResponse to peer: " + getNodeRequest.getSourcePeer().getId(), e);
         }
     }
 }
