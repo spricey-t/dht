@@ -1,11 +1,13 @@
 package com.virohtus.dht.core.network;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.SocketAddress;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class NodeManager {
 
+    private static final Logger LOG = LoggerFactory.getLogger(NodeManager.class);
     private final Node node;
 
     public NodeManager(Node node) {
@@ -51,6 +53,17 @@ public class NodeManager {
     public void setImmediateSuccessor(Node successor) {
         synchronized (node) {
             node.getFingerTable().setImmediateSuccessor(successor);
+        }
+    }
+
+    public void updateImmediateSuccessor(Node successor) {
+        synchronized (node) {
+            int index = node.getFingerTable().getIndexOfFinger(successor);
+            if(index <= 0) {
+                node.getFingerTable().updateFinger(index, successor);
+            } else {
+                LOG.error("tried to update immediate successor but it is not in the fingertable!");
+            }
         }
     }
 

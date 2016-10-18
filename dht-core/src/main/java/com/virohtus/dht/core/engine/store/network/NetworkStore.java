@@ -106,6 +106,7 @@ public class NetworkStore implements Store {
         nodeManager.removeSuccessor(peer.getNodeIdentity());
         node = nodeManager.getCurrentNode();
         if(node.getFingerTable().getPredecessor() != null && !node.getFingerTable().hasSuccessors() && !dhtNodeManager.isShutdown()) {
+            // this means there are only a maximum of 3 nodes in the system, so reconnect to tail
             nodeManager.setImmediateSuccessor(predecessor);
         }
     }

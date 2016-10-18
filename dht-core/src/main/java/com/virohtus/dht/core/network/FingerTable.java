@@ -80,6 +80,20 @@ public class FingerTable implements Wireable {
         return node;
     }
 
+    public int getIndexOfFinger(Node finger) {
+        for(int i = 0; i < successors.size(); i++) {
+            Node successor = successors.get(i);
+            if(successor.getNodeIdentity().equals(finger.getNodeIdentity())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void updateFinger(int index, Node finger) {
+        successors.set(index, finger);
+    }
+
     public Optional<Node> getSuccessor(NodeIdentity nodeIdentity) {
         return successors.stream().filter(successor -> successor.getNodeIdentity().equals(nodeIdentity)).findAny();
     }
