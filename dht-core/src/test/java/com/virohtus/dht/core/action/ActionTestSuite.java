@@ -6,7 +6,8 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         ActionFactoryTest.class,
-        TransportableActionTest.class
+        TransportableActionTest.class,
+        RequestActionTest.class
 })
 public class ActionTestSuite {
 }
