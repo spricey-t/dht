@@ -16,9 +16,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AsyncConnectionTest {
@@ -68,6 +66,8 @@ public class AsyncConnectionTest {
 
         Connection connection = new AsyncConnection(executorService, socketChannel);
         Assert.assertFalse(connection.isListening());
+        connection.listen();
+        Assert.assertTrue(connection.isListening());
         connection.listen();
         Assert.assertTrue(connection.isListening());
         connection.close();
