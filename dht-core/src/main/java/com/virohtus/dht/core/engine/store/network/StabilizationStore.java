@@ -2,12 +2,11 @@ package com.virohtus.dht.core.engine.store.network;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.action.TransportableAction;
-import com.virohtus.dht.core.engine.action.network.GetNodeRequest;
-import com.virohtus.dht.core.engine.action.network.GetNodeResponse;
-import com.virohtus.dht.core.engine.action.network.SetPredecessor;
+import com.virohtus.dht.core.engine.action.network.*;
 import com.virohtus.dht.core.engine.store.Store;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
 import com.virohtus.dht.core.network.Node;
+import com.virohtus.dht.core.network.NodeIdentity;
 import com.virohtus.dht.core.network.NodeManager;
 import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.network.peer.PeerType;
@@ -89,6 +88,10 @@ public class StabilizationStore implements Store {
                 return;
             }
             Peer newSuccessor = peerStore.createPeer(successorsPredecessor.getNodeIdentity().getSocketAddress());
+            NodeIdentity peerIdentity = newSuccessor.sendRequest(new GetNodeIdentityRequest(),
+                    GetNodeIdentityResponse.class).get().getNodeIdentity();
+            newSuccessor.setNodeIdentity(peerIdentity);
+
             node.getFingerTable().setImmediateSuccessor(successorsPredecessor); //set for successor to have up to date node info
             newSuccessor.send(new SetPredecessor(node).serialize());
             nodeManager.setImmediateSuccessor(successorsPredecessor); // set for real, since send was successful

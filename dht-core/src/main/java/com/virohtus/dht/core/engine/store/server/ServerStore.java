@@ -2,10 +2,14 @@ package com.virohtus.dht.core.engine.store.server;
 
 import com.virohtus.dht.core.action.Action;
 import com.virohtus.dht.core.engine.Dispatcher;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.action.server.ServerShutdown;
 import com.virohtus.dht.core.engine.action.server.ServerStarted;
 import com.virohtus.dht.core.engine.store.Store;
 import com.virohtus.dht.core.engine.store.peer.PeerStore;
+import com.virohtus.dht.core.network.NodeIdentity;
+import com.virohtus.dht.core.network.peer.Peer;
 import com.virohtus.dht.core.network.peer.PeerType;
 import com.virohtus.dht.core.transport.connection.Connection;
 import com.virohtus.dht.core.transport.server.AsyncServer;
@@ -17,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ServerStore implements Store, ServerDelegate {
@@ -73,7 +78,14 @@ public class ServerStore implements Store, ServerDelegate {
 
     @Override
     public void connectionOpened(Connection connection) {
-        peerStore.createPeer(connection, PeerType.INCOMING);
+        Peer peer = peerStore.createPeer(connection, PeerType.INCOMING);
+        try {
+            NodeIdentity peerIdentity = peer.sendRequest(new GetNodeIdentityRequest(),
+                    GetNodeIdentityResponse.class).get().getNodeIdentity();
+            peer.setNodeIdentity(peerIdentity);
+        } catch (IOException | TimeoutException | InterruptedException  e) {
+            LOG.error("failed to send NodeIdentityRequest to peer: " + peer.getId(), e);
+        }
     }
 
     @Override

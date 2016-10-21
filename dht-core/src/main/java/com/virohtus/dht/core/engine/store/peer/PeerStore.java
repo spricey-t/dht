@@ -83,14 +83,6 @@ public class PeerStore implements Store {
         Peer peer = new Peer(dispatcher, executorService, peerType, connection);
         addPeer(peer);
         peer.listen();
-        try {
-//            peer.send(new GetNodeIdentityRequest().serialize());
-            NodeIdentity peerIdentity = peer.sendRequest(new GetNodeIdentityRequest(),
-                    GetNodeIdentityResponse.class).get().getNodeIdentity();
-            peer.setNodeIdentity(peerIdentity);
-        } catch (Exception e) {
-            LOG.error("failed to send GetNodeIdentityRequest");
-        }
         dispatcher.dispatch(new PeerConnected(peer));
         return peer;
     }

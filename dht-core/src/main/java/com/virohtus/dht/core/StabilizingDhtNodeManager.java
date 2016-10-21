@@ -2,6 +2,8 @@ package com.virohtus.dht.core;
 
 import com.virohtus.dht.core.engine.Dispatcher;
 import com.virohtus.dht.core.engine.SingleThreadedDispatcher;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityRequest;
+import com.virohtus.dht.core.engine.action.network.GetNodeIdentityResponse;
 import com.virohtus.dht.core.engine.store.LogStore;
 import com.virohtus.dht.core.engine.store.network.NetworkStore;
 import com.virohtus.dht.core.engine.store.network.StabilizationStore;
@@ -96,6 +98,9 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {
         Peer peer = peerStore.createPeer(socketAddress);
+        NodeIdentity peerIdentity = peer.sendRequest(new GetNodeIdentityRequest(),
+                GetNodeIdentityResponse.class).get().getNodeIdentity();
+        peer.setNodeIdentity(peerIdentity);
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
