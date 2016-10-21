@@ -39,9 +39,6 @@ public class NetworkStore implements Store {
 
     public void join(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {
         Peer peer = peerStore.createPeer(socketAddress);
-        NodeIdentity peerIdentity = peer.sendRequest(new GetNodeIdentityRequest(),
-                GetNodeIdentityResponse.class).get().getNodeIdentity();
-        peer.setNodeIdentity(peerIdentity);
         join(peer);
     }
 

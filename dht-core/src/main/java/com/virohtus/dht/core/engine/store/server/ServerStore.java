@@ -79,13 +79,6 @@ public class ServerStore implements Store, ServerDelegate {
     @Override
     public void connectionOpened(Connection connection) {
         Peer peer = peerStore.createPeer(connection, PeerType.INCOMING);
-        try {
-            NodeIdentity peerIdentity = peer.sendRequest(new GetNodeIdentityRequest(),
-                    GetNodeIdentityResponse.class).get().getNodeIdentity();
-            peer.setNodeIdentity(peerIdentity);
-        } catch (IOException | TimeoutException | InterruptedException  e) {
-            LOG.error("failed to send NodeIdentityRequest to peer: " + peer.getId(), e);
-        }
     }
 
     @Override

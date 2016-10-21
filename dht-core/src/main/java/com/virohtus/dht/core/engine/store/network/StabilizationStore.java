@@ -88,10 +88,6 @@ public class StabilizationStore implements Store {
                 return;
             }
             Peer newSuccessor = peerStore.createPeer(successorsPredecessor.getNodeIdentity().getSocketAddress());
-            NodeIdentity peerIdentity = newSuccessor.sendRequest(new GetNodeIdentityRequest(),
-                    GetNodeIdentityResponse.class).get().getNodeIdentity();
-            newSuccessor.setNodeIdentity(peerIdentity);
-
             node.getFingerTable().setImmediateSuccessor(successorsPredecessor); //set for successor to have up to date node info
             newSuccessor.send(new SetPredecessor(node).serialize());
             nodeManager.setImmediateSuccessor(successorsPredecessor); // set for real, since send was successful

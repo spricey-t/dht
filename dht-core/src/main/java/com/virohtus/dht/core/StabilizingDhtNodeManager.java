@@ -98,9 +98,6 @@ public class StabilizingDhtNodeManager implements DhtNodeManager {
 
     private void connect(SocketAddress socketAddress) throws IOException, TimeoutException, InterruptedException {
         Peer peer = peerStore.createPeer(socketAddress);
-        NodeIdentity peerIdentity = peer.sendRequest(new GetNodeIdentityRequest(),
-                GetNodeIdentityResponse.class).get().getNodeIdentity();
-        peer.setNodeIdentity(peerIdentity);
     }
 
     public static void main(String[] args) throws IOException, ExecutionException, InterruptedException, TimeoutException {
