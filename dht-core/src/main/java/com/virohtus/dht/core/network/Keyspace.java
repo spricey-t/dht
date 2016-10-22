@@ -12,23 +12,23 @@ import java.io.IOException;
 public class Keyspace implements Wireable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Keyspace.class);
-    private int start;
-    private int end;
+    private int offset;
+    private int length;
 
     public Keyspace() {
-        start = 0;
-        end = DhtProtocol.GLOBAL_KEYSPACE;
+        offset = 0;
+        length = DhtProtocol.GLOBAL_KEYSPACE;
     }
 
-    public Keyspace(int start, int end) {
-        this();
-        this.start = start;
-        this.end = end;
+    public Keyspace(int offset, int length) {
+        this.offset = offset;
+        this.length = length;
     }
 
     public Keyspace(Keyspace other) {
-        this.start = other.getStart();
-        this.end = other.getEnd();
+        this();
+        this.offset = other.getOffset();
+        this.length = other.getLength();
     }
 
     public Keyspace(DhtInputStream inputStream) throws IOException {
@@ -36,58 +36,74 @@ public class Keyspace implements Wireable {
         fromWire(inputStream);
     }
 
-    public int getStart() {
-        return start;
+    public int getOffset() {
+        return offset;
     }
 
-    public void setStart(int start) {
-        this.start = start;
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 
-    public int getEnd() {
-        return end;
+    public int getLength() {
+        return length;
     }
 
-    public void setEnd(int end) {
-        this.end = end;
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public int getEffectiveEnd() {
+        int effectiveEnd = offset + length;
+        if(isWrapped()) {
+            effectiveEnd = effectiveEnd - DhtProtocol.GLOBAL_KEYSPACE;
+        }
+        return effectiveEnd;
+    }
+
+    public boolean isWrapped() {
+        return (offset + length) > DhtProtocol.GLOBAL_KEYSPACE;
     }
 
     public boolean inKeyspace(int key) {
-        return key > start && key <= end;
+        if(isWrapped()) {
+            return (key > offset && key <= DhtProtocol.GLOBAL_KEYSPACE) || (key <= getEffectiveEnd());
+        }
+        return key > offset && key <= getEffectiveEnd();
     }
 
     public Keyspace[] split() {
-        int mid = (end - start) / 2 + start;
-        int originalStart = start;
-        start = mid;
+        int newLength = length / 2;
+        int newOffset = offset + newLength;
+
         Keyspace[] split = new Keyspace[2];
-        split[0] = new Keyspace(originalStart, mid);
-        split[1] = new Keyspace(mid, end);
+        split[0] = new Keyspace(offset, newLength);
+        split[1] = new Keyspace(newOffset, newLength);
         return split;
     }
 
     public void merge(Keyspace keyspace) {
-        if(start > keyspace.getStart()) {
-            start = keyspace.getStart();
-        }
-        if(end < keyspace.getEnd()) {
-            end = keyspace.getEnd();
-        }
+        int thisEnd = offset + length;
+        int otherEnd = keyspace.getOffset() + keyspace.getLength();
+        int newEnd = Math.max(thisEnd, otherEnd);
+        int newOffset = Math.min(offset, keyspace.getOffset());
+        int newLength = newEnd - newOffset;
+        this.offset = newOffset;
+        this.length = newLength;
     }
 
     public boolean isDefaultKeyspace() {
-        return start == 0 && end == DhtProtocol.GLOBAL_KEYSPACE;
+        return offset == 0 && length == DhtProtocol.GLOBAL_KEYSPACE;
     }
 
     @Override
     public void toWire(DhtOutputStream outputStream) throws IOException {
-        outputStream.writeInt(start);
-        outputStream.writeInt(end);
+        outputStream.writeInt(offset);
+        outputStream.writeInt(length);
     }
 
     @Override
     public void fromWire(DhtInputStream inputStream) throws IOException {
-        start = inputStream.readInt();
-        end = inputStream.readInt();
+        offset = inputStream.readInt();
+        length = inputStream.readInt();
     }
 }
