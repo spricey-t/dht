@@ -24,4 +24,6 @@ public interface DhtProtocol {
     int GET_NODE_RESPONSE = 9;
 
     int SET_PREDECESSOR = 10;
+
+    int UPDATE_KEYSPACE = 11;
 }

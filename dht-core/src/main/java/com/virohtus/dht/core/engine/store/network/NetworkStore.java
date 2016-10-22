@@ -91,6 +91,9 @@ public class NetworkStore implements Store {
                 case DhtProtocol.GET_NODE_REQUEST:
                     handleGetNodeRequest((GetNodeRequest)transportableAction);
                     break;
+                case DhtProtocol.UPDATE_KEYSPACE:
+                    handleUpdateKeyspace((UpdateKeyspace)transportableAction);
+                    break;
             }
         }
     }
@@ -102,6 +105,9 @@ public class NetworkStore implements Store {
         if(predecessor != null && predecessor.getNodeIdentity().equals(peer.getNodeIdentity())) {
             nodeManager.mergeKeyspace(predecessor.getKeyspace());
             nodeManager.setPredecessor(null);
+            if(!dhtNodeManager.isShutdown()) {
+                onKeyspaceChange();
+            }
         }
         nodeManager.removeSuccessor(peer.getNodeIdentity());
         node = nodeManager.getCurrentNode();
@@ -163,6 +169,28 @@ public class NetworkStore implements Store {
                     nodeManager.getCurrentNode()).serialize());
         } catch (IOException e) {
             LOG.error("failed to send GetNodeResponse to peer: " + getNodeRequest.getSourcePeer().getId(), e);
+        }
+    }
+
+    private void handleUpdateKeyspace(UpdateKeyspace updateKeyspace) {
+        Node node = nodeManager.getCurrentNode();
+        Node predecessor = node.getFingerTable().getPredecessor();
+        if(!updateKeyspace.getNodeIdentity().equals(predecessor.getNodeIdentity())) {
+            LOG.warn("received update keyspace request from someone other than my predecessor!");
+            return;
+        }
+        predecessor.setKeyspace(updateKeyspace.getKeyspace());
+        nodeManager.setPredecessor(predecessor);
+    }
+
+    private void onKeyspaceChange() {
+        // notify immediate successor that keyspace has changed.
+        try {
+            Node node = nodeManager.getCurrentNode();
+            Peer successor = peerStore.getPeer(node.getFingerTable().getImmediateSuccessor());
+            successor.send(new UpdateKeyspace(node.getNodeIdentity(), node.getKeyspace()).serialize());
+        } catch (Exception e) {
+            LOG.error("failed to send UpdateKeyspace to immediate succcessor!", e);
         }
     }
 }
