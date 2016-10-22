@@ -101,6 +101,7 @@ public class NetworkStore implements Store {
     private void handlePeerDisconnected(PeerDisconnected peerDisconnected) {
         Peer peer = peerDisconnected.getPeer();
         Node node = nodeManager.getCurrentNode();
+        nodeManager.removeSuccessor(peer.getNodeIdentity());
         Node predecessor = node.getFingerTable().getPredecessor();
         if(predecessor != null && predecessor.getNodeIdentity().equals(peer.getNodeIdentity())) {
             nodeManager.mergeKeyspace(predecessor.getKeyspace());
@@ -109,7 +110,6 @@ public class NetworkStore implements Store {
                 onKeyspaceChange();
             }
         }
-        nodeManager.removeSuccessor(peer.getNodeIdentity());
         node = nodeManager.getCurrentNode();
         if(node.getFingerTable().getPredecessor() != null && !node.getFingerTable().hasSuccessors() && !dhtNodeManager.isShutdown()) {
             // this means there are only a maximum of 3 nodes in the system, so reconnect to tail
@@ -187,6 +187,9 @@ public class NetworkStore implements Store {
         // notify immediate successor that keyspace has changed.
         try {
             Node node = nodeManager.getCurrentNode();
+            if(!node.getFingerTable().hasSuccessors()) {
+                return;
+            }
             Peer successor = peerStore.getPeer(node.getFingerTable().getImmediateSuccessor());
             successor.send(new UpdateKeyspace(node.getNodeIdentity(), node.getKeyspace()).serialize());
         } catch (Exception e) {
