@@ -61,7 +61,7 @@ public class SingleThreadedDispatcher implements Dispatcher {
                 }
                 try {
                     Action action = actionQueue.take();
-                    LOG.info("dispatching: " + action.getClass().getName());
+//                    LOG.info("dispatching: " + action.getClass().getName());
                     listStores().forEach(store -> store.onAction(action));
                 } catch (InterruptedException e) {
                     LOG.warn("interrupted when taking action from dispatch queue!");

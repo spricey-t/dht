@@ -7,7 +7,6 @@ public interface DhtProtocol {
     String STRING_ENCODING = "UTF-8";
     int HEADER_SIZE = 8;
     int REQUEST_TIMEOUT = 10000;
-    int FORWARDED_REQUEST_TIMEOUT = 30000;
     int NETWORK_TIMEOUT = 30000;
     int GLOBAL_KEYSPACE = 500;
     int STABILIZATION_PERIOD = 5000;

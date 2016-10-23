@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -28,14 +26,12 @@ public class StabilizationStore implements Store {
     private final ExecutorService executorService;
     private final NodeManager nodeManager;
     private final PeerStore peerStore;
-    private final Set<Future> requestFutures;
     private Future future;
 
     public StabilizationStore(ExecutorService executorService, NodeManager nodeManager, PeerStore peerStore) {
         this.executorService = executorService;
         this.nodeManager = nodeManager;
         this.peerStore = peerStore;
-        this.requestFutures = new HashSet<>();
     }
 
     public void start() {
@@ -59,9 +55,6 @@ public class StabilizationStore implements Store {
             return;
         }
         future.cancel(true);
-        synchronized (requestFutures) {
-            requestFutures.forEach(f -> f.cancel(true));
-        }
     }
 
     public boolean isAlive() {
@@ -131,7 +124,7 @@ public class StabilizationStore implements Store {
             fingerIndex++;
             int distance = (int)Math.pow(2, fingerIndex);
             response = immediateSuccessor.sendRequest(new GetSuccessorRequest(distance, node),
-                    GetSuccessorResponse.class, DhtProtocol.FORWARDED_REQUEST_TIMEOUT).get();
+                    GetSuccessorResponse.class).get();
             if(response.hasAnswer()) {
                 newSuccessors.add(response.getNode());
             }
@@ -146,25 +139,20 @@ public class StabilizationStore implements Store {
 
     private void handleGetSuccessorRequest(GetSuccessorRequest request) {
         Node node = nodeManager.getCurrentNode();
-        synchronized (requestFutures) {
-            Future future = executorService.submit(() -> {
-                try {
-                    generateNewFingerTable(node, request);
-                } catch (Exception e) {
-                    LOG.error("error when handling GetSuccessorRequest!", e);
-                }
-            });
-            requestFutures.add(future);
+        try {
+            getOrForward(node, request);
+        } catch (Exception e) {
+            LOG.error("error when handling GetSuccessorRequest!", e);
         }
     }
 
-    private void generateNewFingerTable(Node node, GetSuccessorRequest request) throws IOException, PeerNotFoundException, TimeoutException, InterruptedException {
+    private void getOrForward(Node node, GetSuccessorRequest request) throws IOException, PeerNotFoundException, TimeoutException, InterruptedException {
         Peer sender = request.getSourcePeer();
         if(!node.getFingerTable().hasSuccessors()) {
             sender.send(new GetSuccessorResponse(request.getRequestId(), null).serialize());
             return;
         }
-        if(request.getDistance() == 0) {
+        if(request.getDistance() <= 1) {
             sender.send(new GetSuccessorResponse(request.getRequestId(), node).serialize());
             return;
         }
@@ -181,7 +169,7 @@ public class StabilizationStore implements Store {
         Peer peer = peerStore.getPeer(node.getFingerTable().getSuccessorAt(closestSuccessorIndex));
         GetSuccessorResponse response = peer.sendRequest(
                 new GetSuccessorRequest(remainingDistance, request.getOriginatingNode()),
-                GetSuccessorResponse.class, DhtProtocol.FORWARDED_REQUEST_TIMEOUT).get();
+                GetSuccessorResponse.class).get();
         sender.send(new GetSuccessorResponse(request.getRequestId(), response.getNode()).serialize());
     }
 
@@ -196,9 +184,13 @@ public class StabilizationStore implements Store {
     }
 
     private boolean forwardingInBounds(Node node, Keyspace originatingKeyspace, Node nextNode) {
+        // todo figure this out
         int thisOffset = node.getKeyspace().getOffset();
         int nextOffset = nextNode.getKeyspace().getOffset();
         int originalOffset = originatingKeyspace.getOffset();
+        if(thisOffset == nextOffset) {
+            return false;
+        }
         if(thisOffset > nextOffset) {
             // we have wrapped in between this node and the next
             return (thisOffset > originalOffset && nextOffset < originalOffset);
