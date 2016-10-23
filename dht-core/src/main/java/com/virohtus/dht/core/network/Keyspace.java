@@ -77,7 +77,7 @@ public class Keyspace implements Wireable {
 
         Keyspace[] split = new Keyspace[2];
         split[0] = new Keyspace(offset, newLength);
-        split[1] = new Keyspace(newOffset, newLength);
+        split[1] = new Keyspace(newOffset, newLength + (length % 2 == 0 ? 0 : 1));
         return split;
     }
 

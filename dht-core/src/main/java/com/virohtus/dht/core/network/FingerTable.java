@@ -44,6 +44,10 @@ public class FingerTable implements Wireable {
         return successors;
     }
 
+    public Node getSuccessorAt(int index) {
+        return successors.get(index);
+    }
+
     public void setSuccessors(List<Node> successors) {
         this.successors = successors;
     }

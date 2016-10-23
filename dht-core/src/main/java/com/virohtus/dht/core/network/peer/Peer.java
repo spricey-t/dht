@@ -83,9 +83,13 @@ public class Peer implements ConnectionDelegate {
     }
 
     public <T extends ResponseAction> Resolvable<T> sendRequest(RequestAction requestAction, Class<T> responseClass) throws IOException {
+        return sendRequest(requestAction, responseClass, DhtProtocol.REQUEST_TIMEOUT);
+    }
+
+    public <T extends ResponseAction> Resolvable<T> sendRequest(RequestAction requestAction, Class<T> responseClass, int timeout) throws IOException {
         synchronized (pendingRequests) {
             send(requestAction.serialize());
-            pendingRequests.put(requestAction.getRequestId(), new Resolvable<>(DhtProtocol.REQUEST_TIMEOUT));
+            pendingRequests.put(requestAction.getRequestId(), new Resolvable<>(timeout));
         }
         Resolvable<ResponseAction> responseResolvable;
         synchronized (pendingRequests) {

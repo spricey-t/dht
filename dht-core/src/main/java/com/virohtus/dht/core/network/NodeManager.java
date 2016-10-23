@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
+import java.util.List;
 
 public class NodeManager {
 
@@ -41,6 +42,12 @@ public class NodeManager {
     public void setFingerTable(FingerTable fingerTable) {
         synchronized (node) {
             node.setFingerTable(fingerTable);
+        }
+    }
+
+    public void setSuccessors(List<Node> newSuccessors) {
+        synchronized (node) {
+            node.getFingerTable().setSuccessors(newSuccessors);
         }
     }
 

@@ -37,6 +37,8 @@ public class ActionFactory {
             case DhtProtocol.GET_NODE_RESPONSE: return new GetNodeResponse(event);
             case DhtProtocol.SET_PREDECESSOR: return new SetPredecessor(event);
             case DhtProtocol.UPDATE_KEYSPACE: return new UpdateKeyspace(event);
+            case DhtProtocol.GET_SUCCESSOR_REQUEST: return new GetSuccessorRequest(event);
+            case DhtProtocol.GET_SUCCESSOR_RESPONSE: return new GetSuccessorResponse(event);
         }
 
         throw new IOException("unsupported TransportableAction type: " + type);
