@@ -83,7 +83,7 @@ public class ServerStore implements Store, ServerDelegate {
 
     @Override
     public void serverShutdown() {
-        dispatcher.dispatch(new ServerShutdown());
+        dispatcher.dispatch(new ServerShutdown(server));
         synchronized (shutdownLock) {
             shutdownLock.set(true);
             shutdownLock.notifyAll();
