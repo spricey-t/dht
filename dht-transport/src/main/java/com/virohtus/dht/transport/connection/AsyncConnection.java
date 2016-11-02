@@ -3,6 +3,7 @@ package com.virohtus.dht.transport.connection;
 import com.virohtus.dht.transport.protocol.Message;
 import com.virohtus.dht.transport.serialize.TransportOutputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,10 +24,9 @@ public class AsyncConnection implements Connection {
     @Override
     public void send(Message message) throws ConnectionException {
         try {
-            byte[] data = serializeMessage(message);
-            int bytesWritten = 0;
-            while(bytesWritten < data.length) {
-                bytesWritten += socketChannel.write(ByteBuffer.wrap(data)).get();
+            ByteBuffer byteBuffer = ByteBuffer.wrap(serializeMessage(message));
+            while(byteBuffer.hasRemaining()) {
+                socketChannel.write(byteBuffer).get();
             }
         } catch (IOException | InterruptedException | ExecutionException e) {
             throw new ConnectionException(e);
@@ -35,6 +35,7 @@ public class AsyncConnection implements Connection {
 
     @Override
     public void listen() {
+        socketChannel.read();
     }
 
     @Override
@@ -60,7 +61,18 @@ public class AsyncConnection implements Connection {
         }
     }
 
-    private void deserializeMessage() {
+    private Message deserializeMessage() {
+    }
+
+
+    private byte[] readBytes(int length) throws ExecutionException, InterruptedException, IOException {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(length);
+        while(byteBuffer.hasRemaining()) {
+            socketChannel.read(byteBuffer).get();
+            if(received < 0) {
+                throw new IOException("data stream ended prematurely");
+            }
+        }
     }
 
 }
