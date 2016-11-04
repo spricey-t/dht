@@ -4,4 +4,5 @@ public interface Server {
     void listen();
     void shutdown();
     boolean isListening();
+    AccessPoint getAccessPoint();
 }

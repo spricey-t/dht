@@ -20,18 +20,20 @@ public class AsyncServer implements Server {
     private final ServerDelegate serverDelegate;
     private final ConnectionDelegate connectionDelegate;
     private final ExecutorService executorService;
-    private final int serverPort;
+    private final AccessPoint accessPoint;
     private final AsynchronousServerSocketChannel serverSocketChannel;
     private final AtomicBoolean shutdownLock = new AtomicBoolean(true);
     private Future listenFuture;
 
     public AsyncServer(ServerDelegate serverDelegate, ConnectionDelegate connectionDelegate,
-                       ExecutorService executorService, int port) throws IOException {
+                       ExecutorService executorService, AccessPoint accessPoint) throws IOException {
         this.serverDelegate = serverDelegate;
         this.connectionDelegate = connectionDelegate;
         this.executorService = executorService;
-        this.serverPort = port;
-        serverSocketChannel = AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(port));
+        this.accessPoint = accessPoint;
+        serverSocketChannel = AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(accessPoint.getPort()));
+        InetSocketAddress socketAddress = (InetSocketAddress)serverSocketChannel.getLocalAddress();
+        accessPoint.setPort(socketAddress.getPort());
     }
 
     @Override
@@ -91,6 +93,11 @@ public class AsyncServer implements Server {
 
     @Override
     public boolean isListening() {
-        return listenFuture != null && listenFuture.isCancelled() && !listenFuture.isDone();
+        return listenFuture != null && !listenFuture.isCancelled() && !listenFuture.isDone();
+    }
+
+    @Override
+    public AccessPoint getAccessPoint() {
+        return new AccessPoint(accessPoint.getHost(), accessPoint.getPort());
     }
 }
