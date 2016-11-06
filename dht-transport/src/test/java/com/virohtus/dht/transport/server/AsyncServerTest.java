@@ -2,6 +2,7 @@ package com.virohtus.dht.transport.server;
 
 import com.virohtus.dht.transport.connection.ConnectionDelegate;
 import org.junit.*;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -66,5 +67,13 @@ public class AsyncServerTest {
 
         Mockito.verify(serverDelegate, Mockito.times(1)).connectionOpened(Mockito.any());
         socketChannel.close();
+    }
+
+    @Test
+    public void testShutdown() {
+        server.listen();
+        server.shutdown();
+
+        Mockito.verify(serverDelegate, Mockito.times(1)).serverShutdown();
     }
 }

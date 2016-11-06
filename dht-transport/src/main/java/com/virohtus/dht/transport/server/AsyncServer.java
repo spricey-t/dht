@@ -57,6 +57,7 @@ public class AsyncServer implements Server {
             } catch (InterruptedException | ExecutionException e) {
                 LOG.warn("server disrupted");
             }
+            serverDelegate.serverShutdown();
             synchronized (shutdownLock) {
                 shutdownLock.set(true);
                 shutdownLock.notifyAll();

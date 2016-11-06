@@ -4,5 +4,5 @@ import com.virohtus.dht.transport.connection.Connection;
 
 public interface ServerDelegate {
     void connectionOpened(Connection connection);
-    void serverError();
+    void serverShutdown();
 }
